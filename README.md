@@ -30,6 +30,7 @@ The following is a basic example of showing an image that is linked into your pr
 
 	[self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView inView:self.view];
 
+NOTE: There are known issues with using this controller on the iPad which I plan to have corrected over the next few days.
 
 ## Customization
 
@@ -37,7 +38,8 @@ Most of the customization options included within this component are related to 
 
 ## TODO
 
-- Add CocoaPods spec
+- Add CocoaPods spec'
+- Support for handling device orientation changes
 - Add support for loading videos similar to the method for remote photos
 - Consider adding support for additional present/dismiss transition animations
 
