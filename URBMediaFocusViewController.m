@@ -8,9 +8,10 @@
 
 #import "URBMediaFocusViewController.h"
 
-static const CGFloat __animationDuration = 0.25f;		// the base duration for present/dismiss animations (except physics-related ones)
-static const CGFloat __velocityFactor = 1.0f;			// affects how quickly the view is pushed out of the view
-static const CGFloat __angularVelocityFactor = 15.0f;	// adjusts the amount of spin applied to the view during a push force, increases towards the view bounds
+static const CGFloat __animationDuration = 0.25f;				// the base duration for present/dismiss animations (except physics-related ones)
+static const CGFloat __velocityFactor = 1.0f;					// affects how quickly the view is pushed out of the view
+static const CGFloat __angularVelocityFactor = 15.0f;			// adjusts the amount of spin applied to the view during a push force, increases towards the view bounds
+static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how much velocity is required for the push behavior to be applied
 
 @interface URBMediaFocusViewController ()
 
@@ -40,6 +41,16 @@ static const CGFloat __angularVelocityFactor = 15.0f;	// adjusts the amount of s
 	CGFloat _minScale;
 	CGFloat _maxScale;
 	CGFloat _lastPinchScale;
+	UIInterfaceOrientation _currentOrientation;
+	BOOL _hasLaidOut;
+}
+
+- (id)init {
+	self = [super init];
+	if (self) {
+		_hasLaidOut = NO;
+	}
+	return self;
 }
 
 - (void)viewDidLoad {
@@ -54,6 +65,7 @@ static const CGFloat __angularVelocityFactor = 15.0f;	// adjusts the amount of s
 	self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.keyWindow.frame), CGRectGetHeight(self.keyWindow.frame))];
 	self.backgroundView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.6f];
 	self.backgroundView.alpha = 0.0f;
+	self.backgroundView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
 	[self.view addSubview:self.backgroundView];
 	
 	self.imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 50.0, 50.0)];
@@ -71,6 +83,7 @@ static const CGFloat __angularVelocityFactor = 15.0f;	// adjusts the amount of s
 	
 	// UIDynamics stuff
 	self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
+	self.animator.delegate = self;
 	
 	// snap behavior to keep image view in the center as needed
 	self.snapBehavior = [[UISnapBehavior alloc] initWithItem:self.imageView snapToPoint:self.view.center];
@@ -123,6 +136,8 @@ static const CGFloat __angularVelocityFactor = 15.0f;	// adjusts the amount of s
 	//self.imageView.frame = CGRectMake(midpoint.x - image.size.width / 2.0, midpoint.y - image.size.height / 2.0, image.size.width, image.size.height);
 	self.imageView.frame = [self.view convertRect:fromView.frame fromView:nil];
 	_originalFrame = targetRect;
+	// rotate imageView based on current device orientation
+	[self reposition];
 		
 	if (scale < 1.0f) {
 		_minScale = 1.0f;
@@ -133,6 +148,12 @@ static const CGFloat __angularVelocityFactor = 15.0f;	// adjusts the amount of s
 		_maxScale = 1.0f;
 	}
 	_lastPinchScale = 1.0f;
+	_hasLaidOut = YES;
+	
+	// register for device orientation changes
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
+	// register with the device that we want to know when the device orientation changes
+	[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 	
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 1.0f;
@@ -229,6 +250,8 @@ static const CGFloat __angularVelocityFactor = 15.0f;	// adjusts the amount of s
 
 - (void)cleanup {
 	[self.animator removeAllBehaviors];
+	[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark - Gesture Methods
@@ -304,34 +327,34 @@ static const CGFloat __angularVelocityFactor = 15.0f;	// adjusts the amount of s
 		}
 		else {
 			CGPoint velocity = [gestureRecognizer velocityInView:self.view];
-			//NSLog(@"gesture ended: velocity = (%f, %f)... vector: (%f, %f)", velocity.x, velocity.y, velocity.x / 20.0f, velocity.y / 20.0f);
-			
-			CGFloat velocityAdjust = 12.0f;
-			CGFloat minVelocityForFlick = 50.0f;
-			if (fabs(velocity.x / velocityAdjust) > minVelocityForFlick || fabs(velocity.y / velocityAdjust) > minVelocityForFlick) {
+			CGFloat velocityAdjust = 10.0f;
+			if (fabs(velocity.x / velocityAdjust) > __minimumVelocityRequiredForPush || fabs(velocity.y / velocityAdjust) > __minimumVelocityRequiredForPush) {
 				//CGFloat angle = atan2f(velocity.y, velocity.x) * 180.0f / M_PI;
 				
-				// when velocity value is position, gesture went right
-				// for angular velocity: positive = clockwise, negative = counterclockwise
-				CGFloat direction = (velocity.x > 0) ? -1.0f : 1.0f;
-				if (velocity.y < 0 && direction > 0) {
-					direction = -1.0f;
-				}
-				else if (velocity.y < 0 && direction < 0) {
-					direction = 1.0f;
-				}
-				//NSLog(@"velocity.x=%f, velocity.y=%f: (%@, %@) - direction=%f", velocity.x, velocity.y, (velocity.x < 0 ? @"-" : @"+"), (velocity.y < 0 ? @"-" : @"+"), direction);
-				//NSLog(@"angle=%f", angle);
+				// rotation direction is dependent upon which corner was pushed relative to the center of the view
+				// when velocity.y is positive, pushes to the right of center rotate clockwise, left is counterclockwise
+				CGFloat direction = (location.x < view.center.x) ? -1.0f : 1.0f;
+				
+				// when y component of velocity is negative, reverse direction
+				if (velocity.y < 0) { direction *= -1; }
+				
 				// amount of angular velocity should be relative to how close to the edge of the view the force originated
 				// angular velocity is reduced the closer to the center the force is applied
+				// for angular velocity: positive = clockwise, negative = counterclockwise
 				CGFloat angularVelocity = __angularVelocityFactor * (fabsf(CGRectGetWidth(self.imageView.frame) / 2.0 - boxLocation.x)) / (CGRectGetWidth(self.imageView.frame) / 2.0);
+				
+				// amount of angular velocity should also be relative to the push velocity, faster velocity gives more spin
+				CGFloat pushVelocity = sqrtf(powf(velocity.x, 2.0f) + powf(velocity.y, 2.0f));
+				angularVelocity *= (pushVelocity / 1000.0f);
 				
 				[self.itemBehavior addAngularVelocity:angularVelocity * direction forItem:self.imageView];
 				[self.animator addBehavior:self.pushBehavior];
 				self.pushBehavior.pushDirection = CGVectorMake((velocity.x / velocityAdjust) * __velocityFactor, (velocity.y / velocityAdjust) * __velocityFactor);
 				self.pushBehavior.active = YES;
 				
-				[self performSelector:@selector(dismiss:) withObject:nil afterDelay:(0.5 * __velocityFactor)];
+				// delay for dismissing is based on push velocity also
+				CGFloat delay = 0.7f - (pushVelocity / 10000.0f);
+				[self performSelector:@selector(dismiss:) withObject:nil afterDelay:delay * __velocityFactor];
 			}
 			else {
 				[self returnToCenter];
@@ -370,6 +393,65 @@ static const CGFloat __angularVelocityFactor = 15.0f;	// adjusts the amount of s
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
 	if ([self.delegate respondsToSelector:@selector(mediaFocusViewController:didFailLoadingImageWithError:)]) {
 		[self.delegate mediaFocusViewController:self didFailLoadingImageWithError:error];
+	}
+}
+
+#pragma mark - Orientation Helpers
+
+- (void)deviceOrientationChanged:(NSNotification *)notification {
+	NSLog(@"device orientation changed");
+	UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+	if (_currentOrientation != orientation) {
+		_currentOrientation = orientation;
+		[self reposition];
+	}
+}
+
+- (CGAffineTransform)transformForOrientation:(UIInterfaceOrientation)orientation {
+	CGAffineTransform transform = CGAffineTransformIdentity;
+	
+	// calculate a rotation transform that matches the required orientation
+	if (orientation == UIInterfaceOrientationPortraitUpsideDown) {
+		transform = CGAffineTransformMakeRotation(M_PI);
+	}
+	else if (orientation == UIInterfaceOrientationLandscapeLeft) {
+		transform = CGAffineTransformMakeRotation(-M_PI_2);
+	}
+	else if (orientation == UIInterfaceOrientationLandscapeRight) {
+		transform = CGAffineTransformMakeRotation(M_PI_2);
+	}
+	
+	return transform;
+}
+
+- (void)reposition {
+	CGAffineTransform baseTransform = [self transformForOrientation:_currentOrientation];
+	
+	// determine if the rotation we're about to undergo is 90 or 180 degrees
+	CGAffineTransform t1 = self.imageView.transform;
+	CGAffineTransform t2 = baseTransform;
+	CGFloat dot = t1.a * t2.a + t1.c * t2.c;
+	CGFloat n1 = sqrtf(t1.a * t1.a + t1.c * t1.c);
+	CGFloat n2 = sqrtf(t2.a * t2.a + t2.c * t2.c);
+	CGFloat rotationDelta = acosf(dot / (n1 * n2));
+	BOOL isDoubleRotation = (rotationDelta > M_PI_2);
+	
+	// use the system rotation duration
+	CGFloat duration = [UIApplication sharedApplication].statusBarOrientationAnimationDuration;
+	// iPad lies about its rotation duration
+	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) { duration = 0.4; }
+	
+	// double the animation duration if we're rotation 180 degrees
+	if (isDoubleRotation) { duration *= 2; }
+	
+	// if we haven't laid out the subviews yet, we don't want to animate rotation and position transforms
+	if (_hasLaidOut) {
+		[UIView animateWithDuration:duration animations:^{
+			self.imageView.transform = CGAffineTransformConcat(self.imageView.transform, baseTransform);
+		}];
+	}
+	else {
+		self.imageView.transform = CGAffineTransformConcat(self.imageView.transform, baseTransform);
 	}
 }
 

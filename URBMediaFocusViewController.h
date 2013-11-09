@@ -17,7 +17,7 @@
 
 @end
 
-@interface URBMediaFocusViewController : UIViewController <UIGestureRecognizerDelegate, NSURLConnectionDataDelegate>
+@interface URBMediaFocusViewController : UIViewController <UIDynamicAnimatorDelegate, UIGestureRecognizerDelegate, NSURLConnectionDataDelegate>
 
 @property (nonatomic, strong) UIImage *thumbnail;
 @property (nonatomic, strong) UIImage *image;
