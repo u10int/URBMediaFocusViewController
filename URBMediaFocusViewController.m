@@ -175,6 +175,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		if (self.targetViewController) {
 			[self didMoveToParentViewController:self.targetViewController];
 		}
+		
+		if ([self.delegate respondsToSelector:@selector(mediaFocusViewControllerDidAppear:)]) {
+			[self.delegate mediaFocusViewControllerDidAppear:self];
+		}
 	}];
 }
 
@@ -274,6 +278,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[self.animator removeAllBehaviors];
 	[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	
+	if ([self.delegate respondsToSelector:@selector(mediaFocusViewControllerDidDisappear:)]) {
+		[self.delegate mediaFocusViewControllerDidDisappear:self];
+	}
 }
 
 #pragma mark - Gesture Methods
@@ -375,7 +383,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 				self.pushBehavior.active = YES;
 				
 				// delay for dismissing is based on push velocity also
-				CGFloat delay = 0.7f - (pushVelocity / 10000.0f);
+				CGFloat delay = 0.75f - (pushVelocity / 10000.0f);
 				[self performSelector:@selector(dismiss:) withObject:nil afterDelay:delay * __velocityFactor];
 			}
 			else {
