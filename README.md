@@ -15,8 +15,11 @@ The project uses ARC and targets iOS 7.0+.
 
 ## Usage Examples
 
-To create an instance of `URBMediaFocusViewController`, just instantiate it the same way you would `UIViewController`:
+To create an instance of `URBMediaFocusViewController`, just instantiate it the same way you would `UIViewController`, or by simply using `init`:
 
+	self.mediaFocusController = [[URBMediaFocusViewController alloc] init];
+	
+	/* ...or... */
 	self.mediaFocusController = [[URBMediaFocusViewController alloc] initWithNibName:nil bundle:nil];
 
 The standard usage of `URBMediaFocusViewController` is to use it for displaying full-size photos over an existing view. In most cases, you would use it from a smaller thumbnail view of the photo you wish to show an enlarged version for. You can either display a photo that already exists locally within your project, or load the full-size image from a remote URL asynchronously using `NSURLConnection`.
@@ -24,11 +27,15 @@ The standard usage of `URBMediaFocusViewController` is to use it for displaying 
 The standard method would be to load your thumbnail images first, then request their full sizes when displaying the media focus view:
 	
 	NSURL *url = [NSURL URLWithString:@"http://apollo.urban10.net/random/oiab/01.jpg"];
-	[self.mediaFocusController showImageFromURL:url fromView:self.thumbnailView inView:self.view];
+	[self.mediaFocusController showImageFromURL:url fromView:self.thumbnailView];
 
 The following is a basic example of showing an image that is linked into your project locally:
 
-	[self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView inView:self.view];
+	[self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView];
+	
+In most cases, you would present `URBMediaFocusViewController` from your app's key window, which is the default implementation. However, in some cases you may want to present your `URBMediaFocusViewController` view from a specific view controller. You can provide a parent view controller in those cases, and the `URBMediaFocusViewController` instance will be added on top of that controller's view:
+
+	[self.mediaFocusController showImageFromURL:url fromView:self.thubmnailView inViewController:self];
 
 NOTE: There are known issues with using this controller on the iPad which I plan to have corrected over the next few days.
 

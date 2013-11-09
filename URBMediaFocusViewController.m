@@ -101,6 +101,14 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	//self.itemBehavior.resistance = 0.0f;
 }
 
+- (void)showImage:(UIImage *)image fromView:(UIView *)fromView {
+	[self showImage:image fromView:fromView inViewController:nil];
+}
+
+- (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView {
+	[self showImageFromURL:url fromView:fromView inViewController:nil];
+}
+
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
 	
 	self.fromView = fromView;

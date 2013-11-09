@@ -11,6 +11,7 @@
 @class URBMediaFocusViewController;
 
 @protocol URBMediaFocusViewControllerDelegate <NSObject>
+@optional
 
 /**
  *  Tells the delegate that the controller's view is visisble. This is called after all presentation animations have completed.
@@ -47,6 +48,18 @@
 @interface URBMediaFocusViewController : UIViewController <UIDynamicAnimatorDelegate, UIGestureRecognizerDelegate, NSURLConnectionDataDelegate>
 
 @property (nonatomic, readwrite) id<URBMediaFocusViewControllerDelegate> delegate;
+
+/**
+ *  Convenience method for not using a parentViewController.
+ *  @see showImage:fromView:inViewController
+ */
+- (void)showImage:(UIImage *)image fromView:(UIView *)fromView;
+
+/**
+ *  Convenience method for not using a parentViewController.
+ *  @see showImageFromURL:fromView:inViewController
+ */
+- (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView;
 
 /**
  *  Shows a full size image over the current view or main window. The image should be cached locally on the device, in the app bundle or an image generated from `NSData`.

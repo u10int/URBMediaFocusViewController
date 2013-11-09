@@ -26,7 +26,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 	
-	self.mediaFocusController = [[URBMediaFocusViewController alloc] initWithNibName:nil bundle:nil];
+	self.mediaFocusController = [[URBMediaFocusViewController alloc] init];
+	self.mediaFocusController.delegate = self;
 	
 	self.thumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(50.0, 50.0, 100.0, 100.0)];
 	self.thumbnailView.backgroundColor = [UIColor darkGrayColor];
@@ -83,10 +84,31 @@
 	else {
 		url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
 	}
-	[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inViewController:nil];
+	[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view];
+	
+	// alternative method adding the focus view to this controller's view
+	//[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inViewController:self];
 }
 
-#pragma mark - NSURLConnectionDataDelegate
+#pragma mark - URBMediaFocusViewControllerDelegate Methods
+
+- (void)mediaFocusViewControllerDidAppear:(URBMediaFocusViewController *)mediaFocusViewController {
+	NSLog(@"focus view appeared");
+}
+
+- (void)mediaFocusViewControllerDidDisappear:(URBMediaFocusViewController *)mediaFocusViewController {
+	NSLog(@"focus view disappeared");
+}
+
+- (void)mediaFocusViewController:(URBMediaFocusViewController *)mediaFocusViewController didFinishLoadingImage:(UIImage *)image {
+	NSLog(@"focus view finished loading image");
+}
+
+- (void)mediaFocusViewController:(URBMediaFocusViewController *)mediaFocusViewController didFailLoadingImageWithError:(NSError *)error {
+	NSLog(@"focus view failed loading image: %@", error);
+}
+
+#pragma mark - NSURLConnectionDataDelegate Methods
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
 	[self.remoteData appendData:data];

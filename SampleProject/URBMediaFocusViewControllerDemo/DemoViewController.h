@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "URBMediaFocusViewController.h"
 
-@interface DemoViewController : UIViewController <NSURLConnectionDataDelegate>
+@interface DemoViewController : UIViewController <URBMediaFocusViewControllerDelegate, NSURLConnectionDataDelegate>
 
 @end
