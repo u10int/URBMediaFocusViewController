@@ -37,8 +37,6 @@ In most cases, you would present `URBMediaFocusViewController` from your app's k
 
 	[self.mediaFocusController showImageFromURL:url fromView:self.thubmnailView inViewController:self];
 
-NOTE: There are known issues with using this controller on the iPad which I plan to have corrected over the next few days.
-
 ## Customization
 
 Most of the customization options included within this component are related to animation and physics, all of which are stored as static variables in `URBMediaFocusViewController.m` and can be quickly edited to achieve your desired effect.

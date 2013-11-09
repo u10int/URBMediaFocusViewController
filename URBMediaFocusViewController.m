@@ -364,8 +364,11 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 			[self adjustFrame];
 		}
 		else {
+			// need to scale velocity values to tame down physics on the iPad
+			CGFloat deviceScale = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) ? 0.25f : 1.0f;
 			CGPoint velocity = [gestureRecognizer velocityInView:self.view];
-			CGFloat velocityAdjust = 10.0f;
+			CGFloat velocityAdjust = 10.0f * deviceScale;
+			
 			if (fabs(velocity.x / velocityAdjust) > __minimumVelocityRequiredForPush || fabs(velocity.y / velocityAdjust) > __minimumVelocityRequiredForPush) {
 				//CGFloat angle = atan2f(velocity.y, velocity.x) * 180.0f / M_PI;
 				
@@ -384,7 +387,9 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 				// amount of angular velocity should also be relative to the push velocity, faster velocity gives more spin
 				CGFloat pushVelocity = sqrtf(powf(velocity.x, 2.0f) + powf(velocity.y, 2.0f));
 				angularVelocity *= (pushVelocity / 1000.0f);
-				
+				// apply device scale to angular velocity
+				angularVelocity *= deviceScale;
+								
 				[self.itemBehavior addAngularVelocity:angularVelocity * direction forItem:self.imageView];
 				[self.animator addBehavior:self.pushBehavior];
 				self.pushBehavior.pushDirection = CGVectorMake((velocity.x / velocityAdjust) * __velocityFactor, (velocity.y / velocityAdjust) * __velocityFactor);
