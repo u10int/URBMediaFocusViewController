@@ -15,8 +15,8 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 @interface URBMediaFocusViewController ()
 
-@property (nonatomic, strong) UIView *targetView;
 @property (nonatomic, strong) UIView *fromView;
+@property (nonatomic, weak) UIViewController *targetViewController;
 
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) UIView *backgroundView;
@@ -101,15 +101,12 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	//self.itemBehavior.resistance = 0.0f;
 }
 
-- (void)showImage:(UIImage *)image fromView:(UIView *)fromView inView:(UIView *)targetView {
-	self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
-	[self.keyWindow tintColorDidChange];
-	[self.keyWindow addSubview:self.view];
+- (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
 	
-	self.targetView = targetView;
 	self.fromView = fromView;
+	self.targetViewController = parentViewController;
 	
-	CGRect fromRect = [self.view convertRect:fromView.frame fromView:targetView];
+	CGRect fromRect = [self.view convertRect:fromView.frame fromView:nil];
 	self.imageView.transform = CGAffineTransformIdentity;
 	self.imageView.frame = fromRect;
 	self.imageView.image = image;
@@ -155,18 +152,35 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	// register with the device that we want to know when the device orientation changes
 	[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 	
+	if (self.targetViewController) {
+		[self willMoveToParentViewController:self.targetViewController];
+		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
+		[self.targetViewController.view tintColorDidChange];
+		[self.targetViewController addChildViewController:self];
+		[self.targetViewController.view addSubview:self.view];
+	}
+	else {
+		// add this view to the main window if no targetViewController was set
+		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
+		[self.keyWindow tintColorDidChange];
+		[self.keyWindow addSubview:self.view];
+	}
+	
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 1.0f;
 		self.imageView.alpha = 1.0f;
 		self.imageView.frame = targetRect;
 	} completion:^(BOOL finished) {
 		[self.imageView addGestureRecognizer:self.pinchRecognizer];
+		if (self.targetViewController) {
+			[self didMoveToParentViewController:self.targetViewController];
+		}
 	}];
 }
 
-- (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView inView:(UIView *)targetView {
-	self.targetView = targetView;
+- (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
 	self.fromView = fromView;
+	self.targetViewController = parentViewController;
 	
 	NSURLRequest *request = [NSURLRequest requestWithURL:url];
 	NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
@@ -190,10 +204,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 0.0f;
 	} completion:^(BOOL finished) {
-		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
-		[self.keyWindow tintColorDidChange];
-		[self.view removeFromSuperview];
-		
 		[self cleanup];
 	}];
 }
@@ -249,6 +259,18 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 }
 
 - (void)cleanup {
+	[self.view removeFromSuperview];
+	
+	if (self.targetViewController) {
+		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
+		[self.targetViewController.view tintColorDidChange];
+		[self willMoveToParentViewController:nil];
+		[self removeFromParentViewController];
+	}
+	else {
+		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
+		[self.keyWindow tintColorDidChange];
+	}
 	[self.animator removeAllBehaviors];
 	[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -382,7 +404,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	
 	if (self.urlData) {
 		UIImage *image = [UIImage imageWithData:self.urlData];
-		[self showImage:image fromView:self.fromView inView:self.targetView];
+		[self showImage:image fromView:self.fromView inViewController:self.targetViewController];
 		
 		if ([self.delegate respondsToSelector:@selector(mediaFocusViewController:didFinishLoadingImage:)]) {
 			[self.delegate mediaFocusViewController:self didFinishLoadingImage:image];

@@ -83,7 +83,7 @@
 	else {
 		url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
 	}
-	[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inView:self.view];
+	[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inViewController:nil];
 }
 
 #pragma mark - NSURLConnectionDataDelegate
