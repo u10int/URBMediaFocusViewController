@@ -29,6 +29,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 @property (nonatomic, readonly) UIWindow *keyWindow;
 @property (nonatomic, strong) UIPinchGestureRecognizer *pinchRecognizer;
 @property (nonatomic, strong) UIPanGestureRecognizer *panRecognizer;
+@property (nonatomic, strong) UITapGestureRecognizer *dblTapRecognizer;
 
 @property (nonatomic, strong) UIActivityIndicatorView *loadingView;
 @property (nonatomic, strong) NSURLConnection *urlConnection;
@@ -81,6 +82,14 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	
 	[self.imageView addGestureRecognizer:self.panRecognizer];
 	
+    // dbl tap to zoom back to original for easier dismisal
+    self.dblTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(returnToCenter)];
+    self.dblTapRecognizer.delegate = self;
+    self.dblTapRecognizer.numberOfTapsRequired = 2;
+    self.dblTapRecognizer.numberOfTouchesRequired = 1;
+    
+    [self.imageView addGestureRecognizer:self.dblTapRecognizer];
+    
 	// UIDynamics stuff
 	self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
 	self.animator.delegate = self;
@@ -143,7 +152,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	_originalFrame = targetRect;
 	// rotate imageView based on current device orientation
 	[self reposition];
-		
+    
 	if (scale < 1.0f) {
 		_minScale = 1.0f;
 		_maxScale = (targetSize.width > targetSize.height) ? image.size.width / targetSize.width : image.size.height / targetSize.height;
@@ -319,7 +328,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 				self.imageView.transform = CGAffineTransformMakeScale(_minScale, _minScale);
 			} completion:nil];
 		}
-				
+        
 		// adjust frame position if we need to
 		[self adjustFrame];
 		
@@ -389,7 +398,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 				angularVelocity *= (pushVelocity / 1000.0f);
 				// apply device scale to angular velocity
 				angularVelocity *= deviceScale;
-								
+                
 				[self.itemBehavior addAngularVelocity:angularVelocity * direction forItem:self.imageView];
 				[self.animator addBehavior:self.pushBehavior];
 				self.pushBehavior.pushDirection = CGVectorMake((velocity.x / velocityAdjust) * __velocityFactor, (velocity.y / velocityAdjust) * __velocityFactor);
