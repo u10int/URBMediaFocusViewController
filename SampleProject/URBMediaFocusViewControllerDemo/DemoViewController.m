@@ -75,6 +75,7 @@
 }
 
 - (void)showFocusView:(UITapGestureRecognizer *)gestureRecognizer {
+    self.mediaFocusController.parallaxMode = YES;
     [self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView inViewController:self];
 	
 //	NSURL *url;

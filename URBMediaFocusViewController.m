@@ -7,6 +7,15 @@
 //
 
 #import "URBMediaFocusViewController.h"
+#import "UIDeviceHardware.h"
+#import "UIView-JTViewToImage.h"
+#import "UIImage+ImageEffects.h"
+
+static const CGFloat __shrinkScale = .9f;
+static const CGFloat __blurRadius = 2.f;
+static const CGFloat __blurSaturationDeltaMask = .8f;
+static const CGFloat __blurTintColorAlpha = .2f;
+static const CGFloat __overlayAlpha = .7f;
 
 static const CGFloat __animationDuration = 0.25f;				// the base duration for present/dismiss animations (except physics-related ones)
 static const CGFloat __velocityFactor = 1.0f;					// affects how quickly the view is pushed out of the view
@@ -34,6 +43,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 @property (nonatomic, strong) UIActivityIndicatorView *loadingView;
 @property (nonatomic, strong) NSURLConnection *urlConnection;
 @property (nonatomic, strong) NSMutableData *urlData;
+
+// parallax
+@property(nonatomic, strong) UIView *snapshotViewBelow;
+@property(nonatomic, strong) UIView *snapshotViewAbove;
 
 @end
 
@@ -120,6 +133,13 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
 	
+    if (self.parallaxMode) {
+        [self _setStatusBarHidden:YES];
+        UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
+        self.snapshotViewBelow = [self _containerViewForWindow:window];
+        self.snapshotViewAbove = [self _borderedSnapshotImageViewForWindow:window];
+    }
+    
 	self.fromView = fromView;
 	self.targetViewController = parentViewController;
 	
@@ -174,12 +194,18 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
 		[self.targetViewController.view tintColorDidChange];
 		[self.targetViewController addChildViewController:self];
+
+        [self.targetViewController.view addSubview:self.snapshotViewBelow];
+        [self.targetViewController.view addSubview:self.snapshotViewAbove];
 		[self.targetViewController.view addSubview:self.view];
 	}
 	else {
 		// add this view to the main window if no targetViewController was set
 		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
 		[self.keyWindow tintColorDidChange];
+        
+        [self.keyWindow addSubview:self.snapshotViewBelow];
+        [self.keyWindow addSubview:self.snapshotViewAbove];
 		[self.keyWindow addSubview:self.view];
 	}
 	
@@ -187,6 +213,13 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		self.backgroundView.alpha = 1.0f;
 		self.imageView.alpha = 1.0f;
 		self.imageView.frame = targetRect;
+        
+        if (self.parallaxMode) {
+            self.snapshotViewAbove.alpha = 1.0;
+            self.snapshotViewAbove.transform = CGAffineTransformScale(CGAffineTransformIdentity, __shrinkScale, __shrinkScale);
+            
+            self.snapshotViewBelow.transform = CGAffineTransformScale(CGAffineTransformIdentity, __shrinkScale, __shrinkScale);
+        }
 	} completion:^(BOOL finished) {
 		[self.imageView addGestureRecognizer:self.pinchRecognizer];
 		if (self.targetViewController) {
@@ -224,8 +257,19 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 - (void)dismiss:(BOOL)animated {
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 0.0f;
+        if (self.parallaxMode) {
+            self.snapshotViewAbove.alpha = 0.f;
+            self.snapshotViewAbove.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1., 1.);
+            self.snapshotViewBelow.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1., 1.);
+        }
 	} completion:^(BOOL finished) {
 		[self cleanup];
+        
+        if (self.parallaxMode) {
+            [self.snapshotViewAbove removeFromSuperview];
+            [self.snapshotViewBelow removeFromSuperview];
+            [self _setStatusBarHidden:NO];
+        }
 	}];
 }
 
@@ -505,6 +549,79 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	else {
 		self.imageView.transform = CGAffineTransformConcat(self.imageView.transform, baseTransform);
 	}
+}
+
+#pragma mark -
+#pragma mark Parallax Helpers
+
+- (void)_setStatusBarHidden:(BOOL)hidden
+{
+    [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:UIStatusBarAnimationFade];
+}
+
+- (UIView *)_containerViewForWindow:(UIWindow *)window
+{
+    CGFloat extraWidth = window.frame.size.width - (window.frame.size.width * __shrinkScale) + 10.f;
+    CGFloat extraHeight = window.frame.size.height - (window.frame.size.height * __shrinkScale) + 10.f;
+    CGRect containerFrame = CGRectMake(0, 0, window.frame.size.width + extraWidth, window.frame.size.height + extraHeight);
+    
+    //create the container
+    UIView *containerView = [[UIView alloc] initWithFrame:containerFrame];
+    containerView.backgroundColor = [UIColor blackColor];
+    
+    //place the snapshot of the window on the container
+    UIImage *snapshotImage = [window toImage];
+    UIImageView *snapshotImageView = [[UIImageView alloc] initWithImage:snapshotImage];
+    snapshotImageView.center = containerView.center;
+    [containerView addSubview:snapshotImageView];
+    
+    containerView.center = window.center;
+    
+    return containerView;
+}
+
+- (UIImage *)_snapshotImageWithView:(UIView *)view;
+{
+    UIImage *snapshotImage;
+    
+    //take another snapshot of the result and either ...
+    if ([UIDeviceHardware supportsBlur]) {
+        //blur it (if supported)
+        snapshotImage = [view toImage];
+        snapshotImage = [snapshotImage applyBlurWithRadius:__blurRadius
+                                                 tintColor:[UIColor colorWithWhite:0.f alpha:__blurTintColorAlpha]
+                                     saturationDeltaFactor:__blurSaturationDeltaMask
+                                                 maskImage:nil];
+    } else {
+        //darken it
+        UIView *overlay = [[UIView alloc] initWithFrame:view.frame];
+        overlay.backgroundColor = [UIColor colorWithWhite:0.f alpha:__overlayAlpha];
+        [view addSubview:overlay];
+        snapshotImage = [view toImage];
+    }
+    return snapshotImage;
+}
+
+- (UIImageView *)_snapshotImageViewWithSnapshotImage:(UIImage *)image withCenter:(CGPoint)center
+{
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+    imageView.center = center;
+    imageView.alpha = 0.0;
+    imageView.userInteractionEnabled = YES;
+    return imageView;
+}
+
+- (UIImageView *)_borderedSnapshotImageViewForWindow:(UIWindow *)window
+{
+    UIView *containerView = [self _containerViewForWindow:window];
+    UIImage *snapshotImage = [self _snapshotImageWithView:containerView];
+    UIImageView *snapshotImageView = [self _snapshotImageViewWithSnapshotImage:snapshotImage withCenter:window.center];
+    
+    //add a dismiss tap gesture recognizer to the imageview
+    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismiss:)];
+    [snapshotImageView addGestureRecognizer:tgr];
+    
+    return snapshotImageView;
 }
 
 @end

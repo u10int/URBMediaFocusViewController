@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A98C65B183120D400B34510 /* UIDeviceHardware.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C65A183120D400B34510 /* UIDeviceHardware.m */; };
+		1A98C65E183120DA00B34510 /* UIView-JTViewToImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */; };
+		1A98C661183120DF00B34510 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */; };
 		2B0745711826C6020092FA56 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745701826C6020092FA56 /* Foundation.framework */; };
 		2B0745731826C6020092FA56 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745721826C6020092FA56 /* CoreGraphics.framework */; };
 		2B0745751826C6020092FA56 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745741826C6020092FA56 /* UIKit.framework */; };
@@ -33,6 +36,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1A98C659183120D400B34510 /* UIDeviceHardware.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIDeviceHardware.h; sourceTree = "<group>"; };
+		1A98C65A183120D400B34510 /* UIDeviceHardware.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIDeviceHardware.m; sourceTree = "<group>"; };
+		1A98C65C183120DA00B34510 /* UIView-JTViewToImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView-JTViewToImage.h"; sourceTree = "<group>"; };
+		1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView-JTViewToImage.m"; sourceTree = "<group>"; };
+		1A98C65F183120DF00B34510 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
+		1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
 		2B07456D1826C6020092FA56 /* URBMediaFocusViewControllerDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URBMediaFocusViewControllerDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B0745701826C6020092FA56 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2B0745721826C6020092FA56 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -115,6 +124,12 @@
 				2B0745801826C6020092FA56 /* AppDelegate.m */,
 				2B0745A21826CBAB0092FA56 /* DemoViewController.h */,
 				2B0745A31826CBAB0092FA56 /* DemoViewController.m */,
+				1A98C659183120D400B34510 /* UIDeviceHardware.h */,
+				1A98C65A183120D400B34510 /* UIDeviceHardware.m */,
+				1A98C65C183120DA00B34510 /* UIView-JTViewToImage.h */,
+				1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */,
+				1A98C65F183120DF00B34510 /* UIImage+ImageEffects.h */,
+				1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */,
 				2B0745821826C6020092FA56 /* Images.xcassets */,
 				2B0745A51826D0E00092FA56 /* Resources */,
 				2B0745771826C6020092FA56 /* Supporting Files */,
@@ -236,7 +251,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A98C65E183120DA00B34510 /* UIView-JTViewToImage.m in Sources */,
 				2B0745AA182729AF0092FA56 /* URBMediaFocusViewController.m in Sources */,
+				1A98C661183120DF00B34510 /* UIImage+ImageEffects.m in Sources */,
+				1A98C65B183120D400B34510 /* UIDeviceHardware.m in Sources */,
 				2B0745811826C6020092FA56 /* AppDelegate.m in Sources */,
 				2B07457D1826C6020092FA56 /* main.m in Sources */,
 				2B0745A41826CBAB0092FA56 /* DemoViewController.m in Sources */,
