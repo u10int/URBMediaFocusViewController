@@ -17,6 +17,7 @@ static const CGFloat __blurSaturationDeltaMask = .8f;
 static const CGFloat __blurTintColorAlpha = .2f;
 static const CGFloat __overlayAlpha = .7f;
 
+static const CGFloat __maximumDismissDelay = 0.5f;
 static const CGFloat __animationDuration = 0.25f;				// the base duration for present/dismiss animations (except physics-related ones)
 static const CGFloat __velocityFactor = 1.0f;					// affects how quickly the view is pushed out of the view
 static const CGFloat __angularVelocityFactor = 15.0f;			// adjusts the amount of spin applied to the view during a push force, increases towards the view bounds
@@ -134,8 +135,8 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 //    [self.imageView addGestureRecognizer:self.dblTapRecognizer];
 
     // tap to dismiss
-//    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissFromTap:)];
-//    [self.view addGestureRecognizer:tgr];
+    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissFromTap:)];
+    [self.view addGestureRecognizer:tgr];
     
 	// UIDynamics stuff
 	self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
@@ -442,7 +443,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 #pragma mark - Gesture Methods
 
 - (void)handlePanGesture:(UIPanGestureRecognizer *)gestureRecognizer {
-    NSLog(@"zoomscale is %lf", self.scrollView.zoomScale);
     
 	UIView *view = gestureRecognizer.view;
 	CGPoint translation = [gestureRecognizer translationInView:self.view];
@@ -455,7 +455,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		[self.animator removeBehavior:self.pushBehavior];
 		
 		if (transformScale == _minScale) {
-//        if (self.scrollView.zoomScale == self.scrollView.minimumZoomScale) {
 			UIOffset centerOffset = UIOffsetMake(boxLocation.x - CGRectGetMidX(self.imageView.bounds), boxLocation.y - CGRectGetMidY(self.imageView.bounds));
 			self.panAttachmentBehavior = [[UIAttachmentBehavior alloc] initWithItem:self.imageView offsetFromCenter:centerOffset attachedToAnchor:location];
 			//self.panAttachmentBehavior.frequency = 0.0f;
@@ -466,7 +465,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	}
 	else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
 		if (transformScale > _minScale) {
-//        if (self.scrollView.zoomScale > self.scrollView.minimumZoomScale) {
 			self.imageView.center = CGPointMake(view.center.x + translation.x, view.center.y + translation.y);
 			[gestureRecognizer setTranslation:CGPointZero inView:self.view];
 		}
@@ -478,7 +476,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		[self.animator removeBehavior:self.panAttachmentBehavior];
 		
 		if (transformScale > _minScale) {
-//        if (self.scrollView.zoomScale > self.scrollView.minimumZoomScale) {
 			[self adjustFrame];
 		}
 		else {
@@ -514,7 +511,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 				self.pushBehavior.active = YES;
 				
 				// delay for dismissing is based on push velocity also
-				CGFloat delay = 0.75f - (pushVelocity / 10000.0f);
+				CGFloat delay = __maximumDismissDelay - (pushVelocity / 10000.0f);
 				[self performSelector:@selector(dismissFromSwipeAway) withObject:nil afterDelay:delay * __velocityFactor];
 			}
 			else {
@@ -528,8 +525,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
 	CGFloat transformScale = self.imageView.transform.a;
-    BOOL shouldRecognize = (transformScale > _minScale);
-	return shouldRecognize;
+	return (transformScale > _minScale);
 }
 
 #pragma mark - NSURLConnectionDelegate
