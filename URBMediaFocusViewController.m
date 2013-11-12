@@ -82,7 +82,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
 {
-    
+    //need this to enable scrolling
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView
@@ -90,8 +90,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     //if we're zoomed out
     if (scrollView.zoomScale == scrollView.minimumZoomScale) {
         [self.imageView addGestureRecognizer:self.panRecognizer];
+        self.scrollView.scrollEnabled = NO;
     } else {
         [self.imageView removeGestureRecognizer:self.panRecognizer];
+        self.scrollView.scrollEnabled = YES;
     }
     
     //keeps image view centered
@@ -178,6 +180,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     self.scrollView.delegate = self;
     self.scrollView.showsHorizontalScrollIndicator = NO;
     self.scrollView.showsVerticalScrollIndicator = NO;
+    self.scrollView.scrollEnabled = NO;
     [self.scrollView addSubview:self.imageView];
     [self.view addSubview:self.scrollView];
     
