@@ -147,7 +147,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	self.fromView = fromView;
 	self.targetViewController = parentViewController;
 	
-	CGRect fromRect = [self.view convertRect:fromView.frame fromView:nil];
+	CGRect fromRect = [fromView.superview convertRect:fromView.frame toView:nil];
 	self.imageView.transform = CGAffineTransformIdentity;
 	self.imageView.frame = fromRect;
 	self.imageView.image = image;
@@ -172,7 +172,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	
 	// set initial frame of image view to match that of the presenting image
 	//self.imageView.frame = CGRectMake(midpoint.x - image.size.width / 2.0, midpoint.y - image.size.height / 2.0, image.size.width, image.size.height);
-	self.imageView.frame = [self.view convertRect:fromView.frame fromView:nil];
+	self.imageView.frame = [fromView.superview convertRect:fromView.frame toView:nil];
 	_originalFrame = targetRect;
 	// rotate imageView based on current device orientation
 	[self reposition];
@@ -278,7 +278,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		self.backgroundView.alpha = 0.0f;
         
         if (shrinkImageView) {
-            CGRect fromRect = [self.view convertRect:self.fromView.frame fromView:nil];
+            CGRect fromRect = [self.fromView.superview convertRect:self.fromView.frame toView:nil];
             self.imageView.frame = fromRect;
             self.imageView.alpha = 0.0f;
         }
