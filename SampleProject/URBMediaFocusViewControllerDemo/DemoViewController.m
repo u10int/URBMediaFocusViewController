@@ -75,17 +75,17 @@
 }
 
 - (void)showFocusView:(UITapGestureRecognizer *)gestureRecognizer {
-    self.mediaFocusController.parallaxMode = YES;
-    [self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView inViewController:self];
-	
-//	NSURL *url;
-//	if (gestureRecognizer.view == self.remoteThumbnailView) {
-//		url = [NSURL URLWithString:_remoteImageURL];
-//	}
-//	else {
+	NSURL *url;
+	if (gestureRecognizer.view == self.remoteThumbnailView) {
+		url = [NSURL URLWithString:_remoteImageURL];
+        self.mediaFocusController.parallaxMode = NO;
+        [self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view];
+	}
+	else {
+        self.mediaFocusController.parallaxMode = YES;
+        [self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView inViewController:self];        
 //		url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
-//	}
-//	[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view];
+	}
 	
 	// alternative method adding the focus view to this controller's view
 	//[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inViewController:self];
