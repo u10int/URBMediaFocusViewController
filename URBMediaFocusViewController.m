@@ -279,7 +279,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		self.backgroundView.alpha = 0.0f;
         
         if (shrinkImageView) {
-            CGRect fromRect = [self.view convertRect:self.fromView.frame fromView:nil];
+            CGRect fromRect = [self.fromView.superview convertRect:self.fromView.frame toView:nil];
             self.imageView.frame = fromRect;
             self.imageView.alpha = 0.0f;
         }
