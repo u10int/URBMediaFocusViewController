@@ -22,11 +22,12 @@ static const CGFloat __velocityFactor = 1.0f;					// affects how quickly the vie
 static const CGFloat __angularVelocityFactor = 15.0f;			// adjusts the amount of spin applied to the view during a push force, increases towards the view bounds
 static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how much velocity is required for the push behavior to be applied
 
-@interface URBMediaFocusViewController ()
+@interface URBMediaFocusViewController () <UIScrollViewDelegate>
 
 @property (nonatomic, strong) UIView *fromView;
 @property (nonatomic, weak) UIViewController *targetViewController;
 
+@property (nonatomic, strong) UIScrollView *scrollView;
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) UIView *backgroundView;
 @property (nonatomic, strong) UIDynamicAnimator *animator;
@@ -36,7 +37,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 @property (nonatomic, strong) UIDynamicItemBehavior *itemBehavior;
 
 @property (nonatomic, readonly) UIWindow *keyWindow;
-@property (nonatomic, strong) UIPinchGestureRecognizer *pinchRecognizer;
 @property (nonatomic, strong) UIPanGestureRecognizer *panRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *dblTapRecognizer;
 
@@ -54,7 +54,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	CGRect _originalFrame;
 	CGFloat _minScale;
 	CGFloat _maxScale;
-	CGFloat _lastPinchScale;
 	UIInterfaceOrientation _currentOrientation;
 	BOOL _hasLaidOut;
 }
@@ -73,6 +72,34 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[self setup];
 }
 
+- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
+{
+    return self.imageView;
+}
+
+- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
+{
+    
+}
+
+- (void)scrollViewDidZoom:(UIScrollView *)scrollView
+{
+    if (scrollView.zoomScale == scrollView.minimumZoomScale) {
+        [self.imageView addGestureRecognizer:self.panRecognizer];
+    } else {
+        [self.imageView removeGestureRecognizer:self.panRecognizer];
+    }
+    
+    CGFloat offsetX = (scrollView.bounds.size.width > scrollView.contentSize.width)?
+    (scrollView.bounds.size.width - scrollView.contentSize.width) * 0.5 : 0.0;
+    
+    CGFloat offsetY = (scrollView.bounds.size.height > scrollView.contentSize.height)?
+    (scrollView.bounds.size.height - scrollView.contentSize.height) * 0.5 : 0.0;
+    
+    self.imageView.center = CGPointMake(scrollView.contentSize.width * 0.5 + offsetX,
+                                  scrollView.contentSize.height * 0.5 + offsetY);
+}
+
 - (void)setup {
 	self.view.frame = self.keyWindow.bounds;
 	
@@ -81,15 +108,18 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	self.backgroundView.alpha = 0.0f;
 	self.backgroundView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
 	[self.view addSubview:self.backgroundView];
-	
+    
 	self.imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 50.0, 50.0)];
 	self.imageView.contentMode = UIViewContentModeScaleAspectFit;
 	self.imageView.alpha = 0.0f;
 	self.imageView.userInteractionEnabled = YES;
-	[self.view addSubview:self.imageView];
-	
-	self.pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handlePinchGesture:)];
-	self.pinchRecognizer.delegate = self;
+
+    self.scrollView = [[UIScrollView alloc] initWithFrame:self.view.frame];
+    self.scrollView.backgroundColor = [UIColor clearColor];
+    self.scrollView.delegate = self;
+    [self.scrollView addSubview:self.imageView];
+    [self.view addSubview:self.scrollView];
+
 	self.panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
 	self.panRecognizer.delegate = self;
 	
@@ -101,11 +131,11 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     self.dblTapRecognizer.numberOfTapsRequired = 2;
     self.dblTapRecognizer.numberOfTouchesRequired = 1;
     
-    [self.imageView addGestureRecognizer:self.dblTapRecognizer];
+//    [self.imageView addGestureRecognizer:self.dblTapRecognizer];
 
     // tap to dismiss
-    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissFromTap:)];
-    [self.view addGestureRecognizer:tgr];
+//    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissFromTap:)];
+//    [self.view addGestureRecognizer:tgr];
     
 	// UIDynamics stuff
 	self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
@@ -135,6 +165,26 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[self showImageFromURL:url fromView:fromView inViewController:nil];
 }
 
+- (void)loadImageViewWithImage:(UIImage *)image
+{
+    [self.imageView setImage:image];
+    self.imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
+
+    //now configure scrollview accordingly
+    self.scrollView.contentSize = image.size;
+    CGFloat minimumZoomScale;
+    if ((image.size.height / image.size.width) >
+        (self.view.frame.size.height / self.view.frame.size.width)) {
+        minimumZoomScale = self.view.frame.size.height / image.size.height;
+    } else {
+        minimumZoomScale = self.view.frame.size.width / image.size.width;
+    }
+//    self.scrollView.minimumZoomScale = minimumZoomScale;
+    self.scrollView.minimumZoomScale = 1.f;
+    self.scrollView.maximumZoomScale = 1/minimumZoomScale;
+    self.scrollView.zoomScale = minimumZoomScale;
+}
+
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
 	
     if (self.parallaxMode) {
@@ -153,7 +203,9 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	self.imageView.frame = fromRect;
 	self.imageView.image = image;
 	self.imageView.alpha = 0.2;
-	
+    
+    [self loadImageViewWithImage:image];
+    
 	CGSize targetSize = image.size;
 	CGFloat scale = 1.0f;
 	if (targetSize.width > CGRectGetWidth(self.view.frame)) {
@@ -173,7 +225,11 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	
 	// set initial frame of image view to match that of the presenting image
 	//self.imageView.frame = CGRectMake(midpoint.x - image.size.width / 2.0, midpoint.y - image.size.height / 2.0, image.size.width, image.size.height);
+
 	self.imageView.frame = [fromView.superview convertRect:fromView.frame toView:nil];
+    //    CGRect imageViewFrame = CGRectMake(0, 0, image.size.width, image.size.height);
+    //    self.imageView.frame = imageViewFrame;
+    
 	_originalFrame = targetRect;
 	// rotate imageView based on current device orientation
 	[self reposition];
@@ -186,7 +242,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		_minScale = scale;
 		_maxScale = 1.0f;
 	}
-	_lastPinchScale = 1.0f;
 	_hasLaidOut = YES;
 	
 	// register for device orientation changes
@@ -217,7 +272,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
         }
 		[self.keyWindow addSubview:self.view];
 	}
-	
+
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 1.0f;
 		self.imageView.alpha = 1.0f;
@@ -230,7 +285,9 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
             self.snapshotViewBelow.transform = CGAffineTransformScale(CGAffineTransformIdentity, __shrinkScale, __shrinkScale);
         }
 	} completion:^(BOOL finished) {
-		[self.imageView addGestureRecognizer:self.pinchRecognizer];
+       
+        [self returnToCenter:NO];
+        
 		if (self.targetViewController) {
 			[self didMoveToParentViewController:self.targetViewController];
 		}
@@ -343,12 +400,21 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	}];
 }
 
-- (void)returnToCenter {
+- (void)returnToCenter:(BOOL)animated {
 	[self.animator removeAllBehaviors];
-	[UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-		self.imageView.transform = CGAffineTransformIdentity;
-		self.imageView.frame = _originalFrame;
-	} completion:nil];
+    if (animated) {
+        [UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.imageView.transform = CGAffineTransformIdentity;
+            self.imageView.frame = _originalFrame;
+        } completion:nil];
+    } else {
+        self.imageView.transform = CGAffineTransformIdentity;
+        self.imageView.frame = _originalFrame;
+    }
+}
+
+- (void)returnToCenter {
+    [self returnToCenter:YES];
 }
 
 - (void)cleanup {
@@ -375,41 +441,9 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 #pragma mark - Gesture Methods
 
-- (void)handlePinchGesture:(UIPinchGestureRecognizer *)gestureRecognizer {
-	
-	CGFloat pinchScale = gestureRecognizer.scale;
-	//CGFloat scaleDiff = pinchScale - _lastPinchScale;
-	CGFloat scale = 1.0f - (_lastPinchScale - pinchScale);
-	
-	if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
-		_lastPinchScale = 1.0f;
-	}
-	else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
-		self.imageView.transform = CGAffineTransformScale(self.imageView.transform, scale, scale);
-		_lastPinchScale = pinchScale;
-	}
-	else if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
-		CGFloat transformScale = self.imageView.transform.a;
-		if (transformScale > _maxScale) {
-			[UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-				self.imageView.transform = CGAffineTransformMakeScale(_maxScale, _maxScale);
-			} completion:nil];
-		}
-		else if (transformScale < _minScale) {
-			[UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-				self.imageView.transform = CGAffineTransformMakeScale(_minScale, _minScale);
-			} completion:nil];
-		}
-        
-		// adjust frame position if we need to
-		[self adjustFrame];
-		
-		_lastPinchScale = 1.0f;
-	}
-}
-
 - (void)handlePanGesture:(UIPanGestureRecognizer *)gestureRecognizer {
-	
+    NSLog(@"zoomscale is %lf", self.scrollView.zoomScale);
+    
 	UIView *view = gestureRecognizer.view;
 	CGPoint translation = [gestureRecognizer translationInView:self.view];
 	CGPoint location = [gestureRecognizer locationInView:self.view];
@@ -421,6 +455,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		[self.animator removeBehavior:self.pushBehavior];
 		
 		if (transformScale == _minScale) {
+//        if (self.scrollView.zoomScale == self.scrollView.minimumZoomScale) {
 			UIOffset centerOffset = UIOffsetMake(boxLocation.x - CGRectGetMidX(self.imageView.bounds), boxLocation.y - CGRectGetMidY(self.imageView.bounds));
 			self.panAttachmentBehavior = [[UIAttachmentBehavior alloc] initWithItem:self.imageView offsetFromCenter:centerOffset attachedToAnchor:location];
 			//self.panAttachmentBehavior.frequency = 0.0f;
@@ -431,6 +466,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	}
 	else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
 		if (transformScale > _minScale) {
+//        if (self.scrollView.zoomScale > self.scrollView.minimumZoomScale) {
 			self.imageView.center = CGPointMake(view.center.x + translation.x, view.center.y + translation.y);
 			[gestureRecognizer setTranslation:CGPointZero inView:self.view];
 		}
@@ -442,6 +478,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		[self.animator removeBehavior:self.panAttachmentBehavior];
 		
 		if (transformScale > _minScale) {
+//        if (self.scrollView.zoomScale > self.scrollView.minimumZoomScale) {
 			[self adjustFrame];
 		}
 		else {
@@ -491,7 +528,8 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
 	CGFloat transformScale = self.imageView.transform.a;
-	return (transformScale > _minScale);
+    BOOL shouldRecognize = (transformScale > _minScale);
+	return shouldRecognize;
 }
 
 #pragma mark - NSURLConnectionDelegate
