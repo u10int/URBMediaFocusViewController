@@ -7,17 +7,28 @@
 //
 
 #import "URBMediaFocusViewController.h"
+#import "UIDeviceHardware.h"
+#import "UIView-JTViewToImage.h"
+#import "UIImage+ImageEffects.h"
 
+static const CGFloat __shrinkScale = .9f;
+static const CGFloat __blurRadius = 2.f;
+static const CGFloat __blurSaturationDeltaMask = .8f;
+static const CGFloat __blurTintColorAlpha = .2f;
+static const CGFloat __overlayAlpha = .7f;
+
+static const CGFloat __maximumDismissDelay = 0.5f;
 static const CGFloat __animationDuration = 0.25f;				// the base duration for present/dismiss animations (except physics-related ones)
 static const CGFloat __velocityFactor = 1.0f;					// affects how quickly the view is pushed out of the view
 static const CGFloat __angularVelocityFactor = 15.0f;			// adjusts the amount of spin applied to the view during a push force, increases towards the view bounds
 static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how much velocity is required for the push behavior to be applied
 
-@interface URBMediaFocusViewController ()
+@interface URBMediaFocusViewController () <UIScrollViewDelegate>
 
 @property (nonatomic, strong) UIView *fromView;
 @property (nonatomic, weak) UIViewController *targetViewController;
 
+@property (nonatomic, strong) UIScrollView *scrollView;
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) UIView *backgroundView;
 @property (nonatomic, strong) UIDynamicAnimator *animator;
@@ -27,13 +38,18 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 @property (nonatomic, strong) UIDynamicItemBehavior *itemBehavior;
 
 @property (nonatomic, readonly) UIWindow *keyWindow;
-@property (nonatomic, strong) UIPinchGestureRecognizer *pinchRecognizer;
 @property (nonatomic, strong) UIPanGestureRecognizer *panRecognizer;
-@property (nonatomic, strong) UITapGestureRecognizer *dblTapRecognizer;
+@property (nonatomic, strong) UITapGestureRecognizer *doubleTapRecognizer;
+@property (nonatomic, strong) UITapGestureRecognizer *tapRecognizer;
 
 @property (nonatomic, strong) UIActivityIndicatorView *loadingView;
 @property (nonatomic, strong) NSURLConnection *urlConnection;
 @property (nonatomic, strong) NSMutableData *urlData;
+
+// parallax
+@property(nonatomic, strong) UIView *snapshotViewBelow;
+@property(nonatomic, strong) UIView *snapshotViewAbove;
+@property(nonatomic, assign) CGRect fromRect;
 
 @end
 
@@ -41,7 +57,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	CGRect _originalFrame;
 	CGFloat _minScale;
 	CGFloat _maxScale;
-	CGFloat _lastPinchScale;
 	UIInterfaceOrientation _currentOrientation;
 	BOOL _hasLaidOut;
 }
@@ -57,10 +72,46 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 - (void)viewDidLoad {
     [super viewDidLoad];
 	
-	[self setup];
+//	[self setup];
+}
+
+- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
+{
+    return self.imageView;
+}
+
+- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
+{
+    //need this to enable scrolling
+}
+
+- (void)scrollViewDidZoom:(UIScrollView *)scrollView
+{
+    //if we're zoomed out
+    if (scrollView.zoomScale == scrollView.minimumZoomScale) {
+        [self.imageView addGestureRecognizer:self.panRecognizer];
+        self.scrollView.scrollEnabled = NO;
+    } else {
+        [self.imageView removeGestureRecognizer:self.panRecognizer];
+        self.scrollView.scrollEnabled = YES;
+    }
+    
+    //keeps image view centered
+    CGFloat offsetX = (scrollView.bounds.size.width > scrollView.contentSize.width)?
+    (scrollView.bounds.size.width - scrollView.contentSize.width) * 0.5 : 0.0;
+    
+    CGFloat offsetY = (scrollView.bounds.size.height > scrollView.contentSize.height)?
+    (scrollView.bounds.size.height - scrollView.contentSize.height) * 0.5 : 0.0;
+    
+    self.imageView.center = CGPointMake(scrollView.contentSize.width * 0.5 + offsetX,
+                                  scrollView.contentSize.height * 0.5 + offsetY);
 }
 
 - (void)setup {
+    for (int i=0; i<self.view.subviews.count; i++) {
+        [self.view.subviews[i] removeFromSuperview];
+    }
+    
 	self.view.frame = self.keyWindow.bounds;
 	
 	self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.keyWindow.frame), CGRectGetHeight(self.keyWindow.frame))];
@@ -68,27 +119,31 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	self.backgroundView.alpha = 0.0f;
 	self.backgroundView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
 	[self.view addSubview:self.backgroundView];
-	
+    
 	self.imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 50.0, 50.0)];
 	self.imageView.contentMode = UIViewContentModeScaleAspectFit;
 	self.imageView.alpha = 0.0f;
 	self.imageView.userInteractionEnabled = YES;
-	[self.view addSubview:self.imageView];
-	
-	self.pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handlePinchGesture:)];
-	self.pinchRecognizer.delegate = self;
+
 	self.panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
 	self.panRecognizer.delegate = self;
 	
 	[self.imageView addGestureRecognizer:self.panRecognizer];
 	
     // dbl tap to zoom back to original for easier dismisal
-    self.dblTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(returnToCenter)];
-    self.dblTapRecognizer.delegate = self;
-    self.dblTapRecognizer.numberOfTapsRequired = 2;
-    self.dblTapRecognizer.numberOfTouchesRequired = 1;
+    self.doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
+    self.doubleTapRecognizer.delegate = self;
+    self.doubleTapRecognizer.numberOfTapsRequired = 2;
+    self.doubleTapRecognizer.numberOfTouchesRequired = 1;
+    [self.imageView addGestureRecognizer:self.doubleTapRecognizer];
     
-    [self.imageView addGestureRecognizer:self.dblTapRecognizer];
+    // tap to dismiss
+    self.tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissFromTap:)];
+    self.tapRecognizer.delegate = self;
+    self.tapRecognizer.numberOfTapsRequired = 1;
+    self.tapRecognizer.numberOfTouchesRequired = 1;
+    [self.tapRecognizer requireGestureRecognizerToFail:self.doubleTapRecognizer];
+    [self.view addGestureRecognizer:self.tapRecognizer];
     
 	// UIDynamics stuff
 	self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
@@ -118,37 +173,89 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[self showImageFromURL:url fromView:fromView inViewController:nil];
 }
 
+- (void)loadImageViewWithImage:(UIImage *)image
+{
+    self.scrollView = [[UIScrollView alloc] initWithFrame:self.view.frame];
+    self.scrollView.backgroundColor = [UIColor clearColor];
+    self.scrollView.delegate = self;
+    self.scrollView.showsHorizontalScrollIndicator = NO;
+    self.scrollView.showsVerticalScrollIndicator = NO;
+    self.scrollView.scrollEnabled = NO;
+    [self.scrollView addSubview:self.imageView];
+    [self.view addSubview:self.scrollView];
+    
+    [self.imageView setImage:image];
+    self.imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
+
+    //now configure scrollview accordingly
+    self.scrollView.contentSize = image.size;
+    CGFloat minimumZoomScale;
+    CGFloat imageSizeRatio = image.size.height / image.size.width;
+    CGFloat viewRatio = self.view.frame.size.height / self.view.frame.size.width;
+    
+    if (imageSizeRatio > viewRatio) {
+        minimumZoomScale = self.view.frame.size.height / image.size.height;
+    } else {
+        minimumZoomScale = self.view.frame.size.width / image.size.width;
+    }
+    
+    CGFloat maximumZoomScale = MAX(1.f/minimumZoomScale, 1.f);
+    self.scrollView.minimumZoomScale = 1.f;
+    self.scrollView.maximumZoomScale = maximumZoomScale;
+//    self.scrollView.zoomScale = 1.f;
+}
+
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
-	
+    [self setup];
+
+    if (self.parallaxMode) {
+        UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
+        self.snapshotViewBelow = [self _containerViewForWindow:window];
+        self.snapshotViewAbove = [self _borderedSnapshotImageViewForWindow:window];
+
+        //make sure we hide the status bar after taking the snapshot
+        [self _setStatusBarHidden:YES];
+    }
+    
 	self.fromView = fromView;
 	self.targetViewController = parentViewController;
 	
-	CGRect fromRect = [self.view convertRect:fromView.frame fromView:nil];
+    [self.view setNeedsDisplay];
+	self.fromRect = [fromView.superview convertRect:fromView.frame toView:nil];
 	self.imageView.transform = CGAffineTransformIdentity;
-	self.imageView.frame = fromRect;
+	self.imageView.frame = self.fromRect;
 	self.imageView.image = image;
 	self.imageView.alpha = 0.2;
-	
+    
+    [self loadImageViewWithImage:image];
+    
 	CGSize targetSize = image.size;
 	CGFloat scale = 1.0f;
-	if (targetSize.width > CGRectGetWidth(self.view.frame)) {
-		targetSize.width = CGRectGetWidth(self.view.frame);
-		scale = targetSize.width / image.size.width;
-		targetSize.height *= scale;
-	}
-	else if (targetSize.height > CGRectGetHeight(self.view.frame)) {
+
+    CGFloat imageSizeRatio = image.size.height / image.size.width;
+    CGFloat viewRatio = self.view.frame.size.height / self.view.frame.size.width;
+    
+    if (imageSizeRatio > viewRatio) {
 		targetSize.height = CGRectGetHeight(self.view.frame);
 		scale = targetSize.height / image.size.height;
 		targetSize.width *= scale;
-	}
-	
+    } else {
+		targetSize.width = CGRectGetWidth(self.view.frame);
+		scale = targetSize.width / image.size.width;
+		targetSize.height *= scale;
+    }
+    
 	// image view's destination frame is the size of the image capped to the width/height of the target view
 	CGPoint midpoint = CGPointMake(CGRectGetMidX(self.view.frame), CGRectGetMidY(self.view.frame));
 	CGRect targetRect = CGRectMake(midpoint.x - targetSize.width / 2.0, midpoint.y - targetSize.height / 2.0, targetSize.width, targetSize.height);
 	
 	// set initial frame of image view to match that of the presenting image
 	//self.imageView.frame = CGRectMake(midpoint.x - image.size.width / 2.0, midpoint.y - image.size.height / 2.0, image.size.width, image.size.height);
-	self.imageView.frame = [self.view convertRect:fromView.frame fromView:nil];
+
+	self.imageView.frame = [fromView.superview convertRect:fromView.frame toView:nil];
+    //    CGRect imageViewFrame = CGRectMake(0, 0, image.size.width, image.size.height);
+    //    self.imageView.frame = imageViewFrame;
+    
 	_originalFrame = targetRect;
 	// rotate imageView based on current device orientation
 	[self reposition];
@@ -161,7 +268,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		_minScale = scale;
 		_maxScale = 1.0f;
 	}
-	_lastPinchScale = 1.0f;
 	_hasLaidOut = YES;
 	
 	// register for device orientation changes
@@ -174,21 +280,40 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
 		[self.targetViewController.view tintColorDidChange];
 		[self.targetViewController addChildViewController:self];
+
+        if (self.parallaxMode) {
+            [self.targetViewController.view addSubview:self.snapshotViewBelow];
+            [self.targetViewController.view addSubview:self.snapshotViewAbove];
+        }
 		[self.targetViewController.view addSubview:self.view];
 	}
 	else {
 		// add this view to the main window if no targetViewController was set
 		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
 		[self.keyWindow tintColorDidChange];
+        
+        if (self.parallaxMode) {
+            [self.keyWindow addSubview:self.snapshotViewBelow];
+            [self.keyWindow addSubview:self.snapshotViewAbove];
+        }
 		[self.keyWindow addSubview:self.view];
 	}
-	
+
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 1.0f;
 		self.imageView.alpha = 1.0f;
 		self.imageView.frame = targetRect;
+        
+        if (self.parallaxMode) {
+            self.snapshotViewAbove.alpha = 1.0;
+            self.snapshotViewAbove.transform = CGAffineTransformScale(CGAffineTransformIdentity, __shrinkScale, __shrinkScale);
+            
+            self.snapshotViewBelow.transform = CGAffineTransformScale(CGAffineTransformIdentity, __shrinkScale, __shrinkScale);
+        }
 	} completion:^(BOOL finished) {
-		[self.imageView addGestureRecognizer:self.pinchRecognizer];
+       
+        [self returnToCenter:NO];
+        
 		if (self.targetViewController) {
 			[self didMoveToParentViewController:self.targetViewController];
 		}
@@ -221,11 +346,79 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[self.urlConnection start];
 }
 
-- (void)dismiss:(BOOL)animated {
+- (CGRect)zoomRectForScale:(float)scale withCenter:(CGPoint)center {
+    
+    CGRect zoomRect;
+    
+    zoomRect.size.height = [_imageView frame].size.height / scale;
+    zoomRect.size.width  = [_imageView frame].size.width  / scale;
+    
+    center = [_imageView convertPoint:center fromView:self.scrollView];
+    
+    zoomRect.origin.x    = center.x - ((zoomRect.size.width / 2.0));
+    zoomRect.origin.y    = center.y - ((zoomRect.size.height / 2.0));
+    
+    return zoomRect;
+}
+
+- (void)doubleTapped:(UITapGestureRecognizer *)tapGestureRecognizer
+{
+    if (self.scrollView.zoomScale > self.scrollView.minimumZoomScale) {
+        [self.scrollView setZoomScale:self.scrollView.minimumZoomScale animated:YES];
+    } else if (self.scrollView.maximumZoomScale != self.scrollView.minimumZoomScale) {
+        float newScale = self.scrollView.zoomScale * 4.0;
+        CGRect zoomRect = [self zoomRectForScale:newScale
+                                      withCenter:[tapGestureRecognizer locationInView:tapGestureRecognizer.view]];
+        [self.scrollView zoomToRect:zoomRect animated:YES];
+    }
+}
+
+- (void)dismissFromTap:(UITapGestureRecognizer *)tapGestureRecognizer
+{
+    CGPoint imageTapLocation = [tapGestureRecognizer locationInView:self.scrollView];
+    
+    BOOL zoomedOutFully = self.scrollView.zoomScale == self.scrollView.minimumZoomScale;
+    BOOL touchingBackground =  !CGRectContainsPoint(self.imageView.frame, imageTapLocation);
+    if (zoomedOutFully || touchingBackground) {
+        [self dismiss:YES shrinkingImageView:YES];
+    }
+}
+
+- (void)dismissFromSwipeAway
+{
+    [self dismiss:YES shrinkingImageView:NO];
+}
+
+- (void)dismiss:(BOOL)animated shrinkingImageView:(BOOL)shrinkImageView {
+    
+    if (self.parallaxMode) {
+        [self _setStatusBarHidden:NO];
+    }
+    
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+
 		self.backgroundView.alpha = 0.0f;
+        
+        if (shrinkImageView) {
+            self.imageView.frame = CGRectMake(self.fromRect.origin.x + self.scrollView.contentOffset.x,
+                                              self.fromRect.origin.y + self.scrollView.contentOffset.y,
+                                              self.fromRect.size.width, self.fromRect.size.height);
+            self.imageView.alpha = 0.0f;
+        }
+        
+        if (self.parallaxMode) {
+            self.snapshotViewAbove.alpha = 0.f;
+            self.snapshotViewAbove.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1., 1.);
+            self.snapshotViewBelow.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1., 1.);
+        }
+        
 	} completion:^(BOOL finished) {
 		[self cleanup];
+        
+        if (self.parallaxMode) {
+            [self.snapshotViewAbove removeFromSuperview];
+            [self.snapshotViewBelow removeFromSuperview];
+        }
 	}];
 }
 
@@ -271,17 +464,26 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	}];
 }
 
-- (void)returnToCenter {
+- (void)returnToCenter:(BOOL)animated {
 	[self.animator removeAllBehaviors];
-	[UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-		self.imageView.transform = CGAffineTransformIdentity;
-		self.imageView.frame = _originalFrame;
-	} completion:nil];
+    if (animated) {
+        [UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.imageView.transform = CGAffineTransformIdentity;
+            self.imageView.frame = _originalFrame;
+        } completion:nil];
+    } else {
+        self.imageView.transform = CGAffineTransformIdentity;
+        self.imageView.frame = _originalFrame;
+    }
+}
+
+- (void)returnToCenter {
+    [self returnToCenter:YES];
 }
 
 - (void)cleanup {
 	[self.view removeFromSuperview];
-	
+    
 	if (self.targetViewController) {
 		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
 		[self.targetViewController.view tintColorDidChange];
@@ -303,41 +505,8 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 #pragma mark - Gesture Methods
 
-- (void)handlePinchGesture:(UIPinchGestureRecognizer *)gestureRecognizer {
-	
-	CGFloat pinchScale = gestureRecognizer.scale;
-	//CGFloat scaleDiff = pinchScale - _lastPinchScale;
-	CGFloat scale = 1.0f - (_lastPinchScale - pinchScale);
-	
-	if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
-		_lastPinchScale = 1.0f;
-	}
-	else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
-		self.imageView.transform = CGAffineTransformScale(self.imageView.transform, scale, scale);
-		_lastPinchScale = pinchScale;
-	}
-	else if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
-		CGFloat transformScale = self.imageView.transform.a;
-		if (transformScale > _maxScale) {
-			[UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-				self.imageView.transform = CGAffineTransformMakeScale(_maxScale, _maxScale);
-			} completion:nil];
-		}
-		else if (transformScale < _minScale) {
-			[UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-				self.imageView.transform = CGAffineTransformMakeScale(_minScale, _minScale);
-			} completion:nil];
-		}
-        
-		// adjust frame position if we need to
-		[self adjustFrame];
-		
-		_lastPinchScale = 1.0f;
-	}
-}
-
 - (void)handlePanGesture:(UIPanGestureRecognizer *)gestureRecognizer {
-	
+    
 	UIView *view = gestureRecognizer.view;
 	CGPoint translation = [gestureRecognizer translationInView:self.view];
 	CGPoint location = [gestureRecognizer locationInView:self.view];
@@ -348,7 +517,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		[self.animator removeBehavior:self.snapBehavior];
 		[self.animator removeBehavior:self.pushBehavior];
 		
-		if (transformScale == _minScale) {
+		if (transformScale <= _minScale) {
 			UIOffset centerOffset = UIOffsetMake(boxLocation.x - CGRectGetMidX(self.imageView.bounds), boxLocation.y - CGRectGetMidY(self.imageView.bounds));
 			self.panAttachmentBehavior = [[UIAttachmentBehavior alloc] initWithItem:self.imageView offsetFromCenter:centerOffset attachedToAnchor:location];
 			//self.panAttachmentBehavior.frequency = 0.0f;
@@ -405,8 +574,8 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 				self.pushBehavior.active = YES;
 				
 				// delay for dismissing is based on push velocity also
-				CGFloat delay = 0.75f - (pushVelocity / 10000.0f);
-				[self performSelector:@selector(dismiss:) withObject:nil afterDelay:delay * __velocityFactor];
+				CGFloat delay = __maximumDismissDelay - (pushVelocity / 10000.0f);
+				[self performSelector:@selector(dismissFromSwipeAway) withObject:nil afterDelay:delay * __velocityFactor];
 			}
 			else {
 				[self returnToCenter];
@@ -419,7 +588,13 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
 	CGFloat transformScale = self.imageView.transform.a;
-	return (transformScale > _minScale);
+    BOOL shouldRecognize = transformScale > _minScale;
+
+    //make sure tap and double tap don't run simultaneously
+    shouldRecognize &= !([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]
+                         && [otherGestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]);
+    
+	return shouldRecognize;
 }
 
 #pragma mark - NSURLConnectionDelegate
@@ -505,6 +680,75 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	else {
 		self.imageView.transform = CGAffineTransformConcat(self.imageView.transform, baseTransform);
 	}
+}
+
+#pragma mark -
+#pragma mark Parallax Helpers
+
+- (void)_setStatusBarHidden:(BOOL)hidden
+{
+    [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:UIStatusBarAnimationNone];
+}
+
+- (UIView *)_containerViewForWindow:(UIWindow *)window
+{
+    CGFloat extraWidth = window.frame.size.width - (window.frame.size.width * __shrinkScale) + 10.f;
+    CGFloat extraHeight = window.frame.size.height - (window.frame.size.height * __shrinkScale) + 10.f;
+    CGRect containerFrame = CGRectMake(0, 0, window.frame.size.width + extraWidth, window.frame.size.height + extraHeight);
+    
+    //create the container
+    UIView *containerView = [[UIView alloc] initWithFrame:containerFrame];
+    containerView.backgroundColor = [UIColor blackColor];
+    
+    //place the snapshot of the window on the container
+    UIImage *snapshotImage = [window toImage];
+    UIImageView *snapshotImageView = [[UIImageView alloc] initWithImage:snapshotImage];
+    snapshotImageView.center = containerView.center;
+    [containerView addSubview:snapshotImageView];
+    
+    containerView.center = window.center;
+    
+    return containerView;
+}
+
+- (UIImage *)_snapshotImageWithView:(UIView *)view;
+{
+    UIImage *snapshotImage;
+    
+    //take another snapshot of the result and either ...
+    if ([UIDeviceHardware supportsBlur]) {
+        //blur it (if supported)
+        snapshotImage = [view toImage];
+        snapshotImage = [snapshotImage applyBlurWithRadius:__blurRadius
+                                                 tintColor:[UIColor colorWithWhite:0.f alpha:__blurTintColorAlpha]
+                                     saturationDeltaFactor:__blurSaturationDeltaMask
+                                                 maskImage:nil];
+    } else {
+        //darken it
+        UIView *overlay = [[UIView alloc] initWithFrame:view.frame];
+        overlay.backgroundColor = [UIColor colorWithWhite:0.f alpha:__overlayAlpha];
+        [view addSubview:overlay];
+        snapshotImage = [view toImage];
+    }
+    return snapshotImage;
+}
+
+- (UIImageView *)_snapshotImageViewWithSnapshotImage:(UIImage *)image withCenter:(CGPoint)center
+{
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+    imageView.center = center;
+    imageView.alpha = 0.0;
+    imageView.userInteractionEnabled = YES;
+    return imageView;
+}
+
+- (UIImageView *)_borderedSnapshotImageViewForWindow:(UIWindow *)window
+{
+    UIView *containerView = [self _containerViewForWindow:window];
+    UIImage *snapshotImage = [self _snapshotImageWithView:containerView];
+    UIImageView *snapshotImageView = [self _snapshotImageViewWithSnapshotImage:snapshotImage withCenter:window.center];
+    
+    return snapshotImageView;
 }
 
 @end
