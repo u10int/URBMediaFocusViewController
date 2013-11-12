@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A784BD61832615C009873AF /* perthpanosmall.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1A784BD31832615C009873AF /* perthpanosmall.jpg */; };
+		1A784BD71832615C009873AF /* thumb.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A784BD41832615C009873AF /* thumb.png */; };
+		1A784BD81832615C009873AF /* thumb@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A784BD51832615C009873AF /* thumb@2x.png */; };
 		1A98C65B183120D400B34510 /* UIDeviceHardware.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C65A183120D400B34510 /* UIDeviceHardware.m */; };
 		1A98C65E183120DA00B34510 /* UIView-JTViewToImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */; };
 		1A98C661183120DF00B34510 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */; };
@@ -39,6 +42,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1A784BD31832615C009873AF /* perthpanosmall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = perthpanosmall.jpg; sourceTree = "<group>"; };
+		1A784BD41832615C009873AF /* thumb.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = thumb.png; sourceTree = "<group>"; };
+		1A784BD51832615C009873AF /* thumb@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "thumb@2x.png"; sourceTree = "<group>"; };
 		1A98C659183120D400B34510 /* UIDeviceHardware.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIDeviceHardware.h; sourceTree = "<group>"; };
 		1A98C65A183120D400B34510 /* UIDeviceHardware.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIDeviceHardware.m; sourceTree = "<group>"; };
 		1A98C65C183120DA00B34510 /* UIView-JTViewToImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView-JTViewToImage.h"; sourceTree = "<group>"; };
@@ -157,6 +163,9 @@
 		2B0745A51826D0E00092FA56 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				1A784BD31832615C009873AF /* perthpanosmall.jpg */,
+				1A784BD41832615C009873AF /* thumb.png */,
+				1A784BD51832615C009873AF /* thumb@2x.png */,
 				1ABBCDF01831CD3500DC1835 /* perth01.png */,
 				2B0745A61826D0E00092FA56 /* seattle01.jpg */,
 				1ABBCE371832173600DC1835 /* perthpano01.jpg */,
@@ -241,8 +250,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B07457B1826C6020092FA56 /* InfoPlist.strings in Resources */,
+				1A784BD61832615C009873AF /* perthpanosmall.jpg in Resources */,
 				1ABBCE3A1832281B00DC1835 /* perthpano02.jpg in Resources */,
 				1ABBCE381832173600DC1835 /* perthpano01.jpg in Resources */,
+				1A784BD81832615C009873AF /* thumb@2x.png in Resources */,
+				1A784BD71832615C009873AF /* thumb.png in Resources */,
 				2B0745A71826D0E00092FA56 /* seattle01.jpg in Resources */,
 				2B0745831826C6020092FA56 /* Images.xcassets in Resources */,
 				1ABBCDF11831CD3500DC1835 /* perth01.png in Resources */,

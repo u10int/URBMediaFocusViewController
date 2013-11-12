@@ -68,7 +68,7 @@
 	self.parallaxThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
 	self.parallaxThumbnailView.clipsToBounds = YES;
 	self.parallaxThumbnailView.userInteractionEnabled = YES;
-	self.parallaxThumbnailView.image = [UIImage imageNamed:@"perth01"];
+	self.parallaxThumbnailView.image = [UIImage imageNamed:@"thumb"];
 	[self.view addSubview:self.parallaxThumbnailView];
 	
 	// add tap gesture on thumbnail view to show focus view
@@ -144,7 +144,7 @@
 	} else {
         NSString *imageName;
         if (gestureRecognizer.view == self.parallaxThumbnailView) {
-            imageName = @"perth01.png";
+            imageName = @"thumb";
         } else if (gestureRecognizer.view == self.parallaxThumbnailView2) {
             imageName = @"perthpano01.jpg";
         } else {

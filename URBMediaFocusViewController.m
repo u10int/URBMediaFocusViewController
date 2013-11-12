@@ -106,6 +106,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 }
 
 - (void)setup {
+    for (int i=0; i<self.view.subviews.count; i++) {
+        [self.view.subviews[i] removeFromSuperview];
+    }
+    
 	self.view.frame = self.keyWindow.bounds;
 	
 	self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.keyWindow.frame), CGRectGetHeight(self.keyWindow.frame))];
@@ -192,9 +196,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
         minimumZoomScale = self.view.frame.size.width / image.size.width;
     }
     
+    CGFloat maximumZoomScale = MAX(1.f/minimumZoomScale, 1.f);
     self.scrollView.minimumZoomScale = 1.f;
-    self.scrollView.maximumZoomScale = 1/minimumZoomScale;
-    self.scrollView.zoomScale = 1.f;
+    self.scrollView.maximumZoomScale = maximumZoomScale;
+//    self.scrollView.zoomScale = 1.f;
 }
 
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
@@ -510,7 +515,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		[self.animator removeBehavior:self.snapBehavior];
 		[self.animator removeBehavior:self.pushBehavior];
 		
-		if (transformScale == _minScale) {
+		if (transformScale <= _minScale) {
 			UIOffset centerOffset = UIOffsetMake(boxLocation.x - CGRectGetMidX(self.imageView.bounds), boxLocation.y - CGRectGetMidY(self.imageView.bounds));
 			self.panAttachmentBehavior = [[UIAttachmentBehavior alloc] initWithItem:self.imageView offsetFromCenter:centerOffset attachedToAnchor:location];
 			//self.panAttachmentBehavior.frequency = 0.0f;
