@@ -39,7 +39,8 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 @property (nonatomic, readonly) UIWindow *keyWindow;
 @property (nonatomic, strong) UIPanGestureRecognizer *panRecognizer;
-@property (nonatomic, strong) UITapGestureRecognizer *dblTapRecognizer;
+@property (nonatomic, strong) UITapGestureRecognizer *doubleTapRecognizer;
+@property (nonatomic, strong) UITapGestureRecognizer *tapRecognizer;
 
 @property (nonatomic, strong) UIActivityIndicatorView *loadingView;
 @property (nonatomic, strong) NSURLConnection *urlConnection;
@@ -86,6 +87,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView
 {
+    //if we're zoomed out
     if (scrollView.zoomScale == scrollView.minimumZoomScale) {
         [self.imageView addGestureRecognizer:self.panRecognizer];
     } else {
@@ -123,16 +125,19 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[self.imageView addGestureRecognizer:self.panRecognizer];
 	
     // dbl tap to zoom back to original for easier dismisal
-    self.dblTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(returnToCenter)];
-    self.dblTapRecognizer.delegate = self;
-    self.dblTapRecognizer.numberOfTapsRequired = 2;
-    self.dblTapRecognizer.numberOfTouchesRequired = 1;
+    self.doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapped:)];
+    self.doubleTapRecognizer.delegate = self;
+    self.doubleTapRecognizer.numberOfTapsRequired = 2;
+    self.doubleTapRecognizer.numberOfTouchesRequired = 1;
+    [self.imageView addGestureRecognizer:self.doubleTapRecognizer];
     
-//    [self.imageView addGestureRecognizer:self.dblTapRecognizer];
-
     // tap to dismiss
-    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissFromTap:)];
-    [self.view addGestureRecognizer:tgr];
+    self.tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissFromTap:)];
+    self.tapRecognizer.delegate = self;
+    self.tapRecognizer.numberOfTapsRequired = 1;
+    self.tapRecognizer.numberOfTouchesRequired = 1;
+    [self.tapRecognizer requireGestureRecognizerToFail:self.doubleTapRecognizer];
+    [self.view addGestureRecognizer:self.tapRecognizer];
     
 	// UIDynamics stuff
 	self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
@@ -331,15 +336,41 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[self.urlConnection start];
 }
 
+- (CGRect)zoomRectForScale:(float)scale withCenter:(CGPoint)center {
+    
+    CGRect zoomRect;
+    
+    zoomRect.size.height = [_imageView frame].size.height / scale;
+    zoomRect.size.width  = [_imageView frame].size.width  / scale;
+    
+    center = [_imageView convertPoint:center fromView:self.scrollView];
+    
+    zoomRect.origin.x    = center.x - ((zoomRect.size.width / 2.0));
+    zoomRect.origin.y    = center.y - ((zoomRect.size.height / 2.0));
+    
+    return zoomRect;
+}
+
+- (void)doubleTapped:(UITapGestureRecognizer *)tapGestureRecognizer
+{
+    float newScale = self.scrollView.zoomScale * 4.0;
+    if (self.scrollView.zoomScale > self.scrollView.minimumZoomScale) {
+        [self.scrollView setZoomScale:self.scrollView.minimumZoomScale animated:YES];
+    }
+    else {
+        CGRect zoomRect = [self zoomRectForScale:newScale
+                                      withCenter:[tapGestureRecognizer locationInView:tapGestureRecognizer.view]];
+        [self.scrollView zoomToRect:zoomRect animated:YES];
+    }
+}
+
 - (void)dismissFromTap:(UITapGestureRecognizer *)tapGestureRecognizer
 {
     CGPoint imageTapLocation = [tapGestureRecognizer locationInView:self.scrollView];
-    NSLog(@"Checking if %@ is in %@", NSStringFromCGPoint(imageTapLocation), NSStringFromCGRect(self.imageView.frame));
     
-    //if we're zoomed out fully, or we're touching the space around the imageView
-    if (self.scrollView.zoomScale == self.scrollView.minimumZoomScale
-        || !CGRectContainsPoint(self.imageView.frame, imageTapLocation)) {
-        
+    BOOL zoomedOutFully = self.scrollView.zoomScale == self.scrollView.minimumZoomScale;
+    BOOL touchingBackground =  !CGRectContainsPoint(self.imageView.frame, imageTapLocation);
+    if (zoomedOutFully || touchingBackground) {
         [self dismiss:YES shrinkingImageView:YES];
     }
 }
@@ -544,7 +575,13 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
 	CGFloat transformScale = self.imageView.transform.a;
-	return (transformScale > _minScale);
+    BOOL shouldRecognize = transformScale > _minScale;
+
+    //make sure tap and double tap don't run simultaneously
+    shouldRecognize &= !([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]
+                         && [otherGestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]);
+    
+	return shouldRecognize;
 }
 
 #pragma mark - NSURLConnectionDelegate
