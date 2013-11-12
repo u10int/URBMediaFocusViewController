@@ -201,10 +201,12 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     [self setup];
 
     if (self.parallaxMode) {
-        [self _setStatusBarHidden:YES];
         UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
         self.snapshotViewBelow = [self _containerViewForWindow:window];
         self.snapshotViewAbove = [self _borderedSnapshotImageViewForWindow:window];
+
+        //make sure we hide the status bar after taking the snapshot
+        [self _setStatusBarHidden:YES];
     }
     
 	self.fromView = fromView;
@@ -381,6 +383,11 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 }
 
 - (void)dismiss:(BOOL)animated shrinkingImageView:(BOOL)shrinkImageView {
+    
+    if (self.parallaxMode) {
+        [self _setStatusBarHidden:NO];
+    }
+    
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 
 		self.backgroundView.alpha = 0.0f;
@@ -404,7 +411,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
         if (self.parallaxMode) {
             [self.snapshotViewAbove removeFromSuperview];
             [self.snapshotViewBelow removeFromSuperview];
-            [self _setStatusBarHidden:NO];
         }
 	}];
 }
@@ -674,7 +680,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (void)_setStatusBarHidden:(BOOL)hidden
 {
-    [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:UIStatusBarAnimationFade];
+    [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:UIStatusBarAnimationNone];
 }
 
 - (UIView *)_containerViewForWindow:(UIWindow *)window
