@@ -12,6 +12,7 @@
 @interface DemoViewController ()
 
 @property (nonatomic, strong) UIImageView *thumbnailView;
+@property (nonatomic, strong) UIImageView *parallaxThumbnailView;
 @property (nonatomic, strong) UIImageView *remoteThumbnailView;
 @property (nonatomic, strong) NSMutableData *remoteData;
 @property (nonatomic, strong) URBMediaFocusViewController *mediaFocusController;
@@ -43,6 +44,7 @@
 	tapRecognizer.numberOfTouchesRequired = 1;
 	[self.thumbnailView addGestureRecognizer:tapRecognizer];
 	
+
 	self.remoteThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(50.0, CGRectGetMaxY(self.thumbnailView.frame) + 50.0, 100.0, 100.0)];
 	self.remoteThumbnailView.backgroundColor = [UIColor darkGrayColor];
 	self.remoteThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
@@ -55,7 +57,27 @@
 	remoteTapRecognizer.numberOfTapsRequired = 1;
 	remoteTapRecognizer.numberOfTouchesRequired = 1;
 	[self.remoteThumbnailView addGestureRecognizer:remoteTapRecognizer];
+
 	
+    
+
+    self.parallaxThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(50.0, CGRectGetMaxY(self.remoteThumbnailView.frame) + 50.0,
+                                                                               100.0, 100.0)];
+	self.parallaxThumbnailView.backgroundColor = [UIColor darkGrayColor];
+	self.parallaxThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
+	self.parallaxThumbnailView.clipsToBounds = YES;
+	self.parallaxThumbnailView.userInteractionEnabled = YES;
+	self.parallaxThumbnailView.image = [UIImage imageNamed:@"perth01"];
+	[self.view addSubview:self.parallaxThumbnailView];
+	
+	// add tap gesture on thumbnail view to show focus view
+	UITapGestureRecognizer *parallaxTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showFocusView:)];
+	parallaxTapRecognizer.numberOfTapsRequired = 1;
+	parallaxTapRecognizer.numberOfTouchesRequired = 1;
+	[self.parallaxThumbnailView addGestureRecognizer:parallaxTapRecognizer];
+    
+    
+
 	_remoteImageURL = @"http://apollo.urban10.net/random/oiab/01.jpg";
 }
 
@@ -79,13 +101,19 @@
 	if (gestureRecognizer.view == self.remoteThumbnailView) {
 		url = [NSURL URLWithString:_remoteImageURL];
         self.mediaFocusController.parallaxMode = NO;
-        [self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view];
-	}
-	else {
+        [self.mediaFocusController showImageFromURL:url
+                                           fromView:gestureRecognizer.view];
+	} else if (gestureRecognizer.view == self.thumbnailView) {
+		url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
+        self.mediaFocusController.parallaxMode = NO;
+        [self.mediaFocusController showImageFromURL:url
+                                           fromView:gestureRecognizer.view];
+	} else if (gestureRecognizer.view == self.parallaxThumbnailView) {
         self.mediaFocusController.parallaxMode = YES;
-        [self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView inViewController:self];        
-//		url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
-	}
+        [self.mediaFocusController showImage:[UIImage imageNamed:@"perth01"]
+                                    fromView:self.parallaxThumbnailView
+                            inViewController:self];
+    }
 	
 	// alternative method adding the focus view to this controller's view
 	//[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inViewController:self];

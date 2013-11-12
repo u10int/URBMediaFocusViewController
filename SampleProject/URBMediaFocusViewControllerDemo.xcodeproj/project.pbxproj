@@ -10,6 +10,7 @@
 		1A98C65B183120D400B34510 /* UIDeviceHardware.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C65A183120D400B34510 /* UIDeviceHardware.m */; };
 		1A98C65E183120DA00B34510 /* UIView-JTViewToImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */; };
 		1A98C661183120DF00B34510 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */; };
+		1ABBCDF11831CD3500DC1835 /* perth01.png in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBCDF01831CD3500DC1835 /* perth01.png */; };
 		2B0745711826C6020092FA56 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745701826C6020092FA56 /* Foundation.framework */; };
 		2B0745731826C6020092FA56 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745721826C6020092FA56 /* CoreGraphics.framework */; };
 		2B0745751826C6020092FA56 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745741826C6020092FA56 /* UIKit.framework */; };
@@ -42,6 +43,7 @@
 		1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView-JTViewToImage.m"; sourceTree = "<group>"; };
 		1A98C65F183120DF00B34510 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
 		1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
+		1ABBCDF01831CD3500DC1835 /* perth01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = perth01.png; sourceTree = "<group>"; };
 		2B07456D1826C6020092FA56 /* URBMediaFocusViewControllerDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URBMediaFocusViewControllerDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B0745701826C6020092FA56 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2B0745721826C6020092FA56 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -151,6 +153,7 @@
 		2B0745A51826D0E00092FA56 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				1ABBCDF01831CD3500DC1835 /* perth01.png */,
 				2B0745A61826D0E00092FA56 /* seattle01.jpg */,
 			);
 			path = Resources;
@@ -234,6 +237,7 @@
 				2B07457B1826C6020092FA56 /* InfoPlist.strings in Resources */,
 				2B0745A71826D0E00092FA56 /* seattle01.jpg in Resources */,
 				2B0745831826C6020092FA56 /* Images.xcassets in Resources */,
+				1ABBCDF11831CD3500DC1835 /* perth01.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
