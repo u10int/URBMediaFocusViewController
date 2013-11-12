@@ -106,11 +106,10 @@
 	} else if (gestureRecognizer.view == self.thumbnailView) {
 		url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
         self.mediaFocusController.parallaxMode = NO;
-        [self.mediaFocusController showImageFromURL:url
-                                           fromView:gestureRecognizer.view];
+        [self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view];
 	} else if (gestureRecognizer.view == self.parallaxThumbnailView) {
         self.mediaFocusController.parallaxMode = YES;
-        [self.mediaFocusController showImage:[UIImage imageNamed:@"perth01"]
+        [self.mediaFocusController showImage:[UIImage imageNamed:@"perthpano3.jpg"]
                                     fromView:self.parallaxThumbnailView
                             inViewController:self];
     }

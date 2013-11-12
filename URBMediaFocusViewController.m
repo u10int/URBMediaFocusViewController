@@ -48,6 +48,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 // parallax
 @property(nonatomic, strong) UIView *snapshotViewBelow;
 @property(nonatomic, strong) UIView *snapshotViewAbove;
+@property(nonatomic, assign) CGRect fromRect;
 
 @end
 
@@ -70,7 +71,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 - (void)viewDidLoad {
     [super viewDidLoad];
 	
-	[self setup];
+//	[self setup];
 }
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
@@ -115,11 +116,11 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	self.imageView.alpha = 0.0f;
 	self.imageView.userInteractionEnabled = YES;
 
-    self.scrollView = [[UIScrollView alloc] initWithFrame:self.view.frame];
-    self.scrollView.backgroundColor = [UIColor clearColor];
-    self.scrollView.delegate = self;
-    [self.scrollView addSubview:self.imageView];
-    [self.view addSubview:self.scrollView];
+//    self.scrollView = [[UIScrollView alloc] initWithFrame:self.view.frame];
+//    self.scrollView.backgroundColor = [UIColor clearColor];
+//    self.scrollView.delegate = self;
+//    [self.scrollView addSubview:self.imageView];
+//    [self.view addSubview:self.scrollView];
 
 	self.panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
 	self.panRecognizer.delegate = self;
@@ -168,6 +169,14 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (void)loadImageViewWithImage:(UIImage *)image
 {
+    self.scrollView = [[UIScrollView alloc] initWithFrame:self.view.frame];
+    self.scrollView.backgroundColor = [UIColor clearColor];
+    self.scrollView.delegate = self;
+    self.scrollView.showsHorizontalScrollIndicator = NO;
+    self.scrollView.showsVerticalScrollIndicator = NO;
+    [self.scrollView addSubview:self.imageView];
+    [self.view addSubview:self.scrollView];
+    
     [self.imageView setImage:image];
     self.imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
 
@@ -187,7 +196,8 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 }
 
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
-	
+    [self setup];
+
     if (self.parallaxMode) {
         [self _setStatusBarHidden:YES];
         UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
@@ -199,9 +209,9 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	self.targetViewController = parentViewController;
 	
     [self.view setNeedsDisplay];
-	CGRect fromRect = [fromView.superview convertRect:fromView.frame toView:nil];
+	self.fromRect = [fromView.superview convertRect:fromView.frame toView:nil];
 	self.imageView.transform = CGAffineTransformIdentity;
-	self.imageView.frame = fromRect;
+	self.imageView.frame = self.fromRect;
 	self.imageView.image = image;
 	self.imageView.alpha = 0.2;
     
@@ -321,9 +331,17 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[self.urlConnection start];
 }
 
-- (void)dismissFromTap:(id)sender
+- (void)dismissFromTap:(UITapGestureRecognizer *)tapGestureRecognizer
 {
-    [self dismiss:YES shrinkingImageView:YES];
+    CGPoint imageTapLocation = [tapGestureRecognizer locationInView:self.scrollView];
+    NSLog(@"Checking if %@ is in %@", NSStringFromCGPoint(imageTapLocation), NSStringFromCGRect(self.imageView.frame));
+    
+    //if we're zoomed out fully, or we're touching the space around the imageView
+    if (self.scrollView.zoomScale == self.scrollView.minimumZoomScale
+        || !CGRectContainsPoint(self.imageView.frame, imageTapLocation)) {
+        
+        [self dismiss:YES shrinkingImageView:YES];
+    }
 }
 
 - (void)dismissFromSwipeAway
@@ -337,8 +355,9 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		self.backgroundView.alpha = 0.0f;
         
         if (shrinkImageView) {
-            CGRect fromRect = [self.fromView.superview convertRect:self.fromView.frame toView:nil];
-            self.imageView.frame = fromRect;
+            self.imageView.frame = CGRectMake(self.fromRect.origin.x + self.scrollView.contentOffset.x,
+                                              self.fromRect.origin.y + self.scrollView.contentOffset.y,
+                                              self.fromRect.size.width, self.fromRect.size.height);
             self.imageView.alpha = 0.0f;
         }
         
@@ -420,7 +439,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (void)cleanup {
 	[self.view removeFromSuperview];
-	
+    
 	if (self.targetViewController) {
 		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
 		[self.targetViewController.view tintColorDidChange];

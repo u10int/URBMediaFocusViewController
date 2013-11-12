@@ -11,6 +11,10 @@
 		1A98C65E183120DA00B34510 /* UIView-JTViewToImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */; };
 		1A98C661183120DF00B34510 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */; };
 		1ABBCDF11831CD3500DC1835 /* perth01.png in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBCDF01831CD3500DC1835 /* perth01.png */; };
+		1ABBCE341832147700DC1835 /* perthpano.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBCE331832147700DC1835 /* perthpano.jpg */; };
+		1ABBCE361832151000DC1835 /* perthpanosmall.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBCE351832151000DC1835 /* perthpanosmall.jpg */; };
+		1ABBCE381832173600DC1835 /* perthpano2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBCE371832173600DC1835 /* perthpano2.jpg */; };
+		1ABBCE3A1832281B00DC1835 /* perthpano3.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBCE391832281B00DC1835 /* perthpano3.jpg */; };
 		2B0745711826C6020092FA56 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745701826C6020092FA56 /* Foundation.framework */; };
 		2B0745731826C6020092FA56 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745721826C6020092FA56 /* CoreGraphics.framework */; };
 		2B0745751826C6020092FA56 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745741826C6020092FA56 /* UIKit.framework */; };
@@ -44,6 +48,10 @@
 		1A98C65F183120DF00B34510 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
 		1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
 		1ABBCDF01831CD3500DC1835 /* perth01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = perth01.png; sourceTree = "<group>"; };
+		1ABBCE331832147700DC1835 /* perthpano.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = perthpano.jpg; sourceTree = "<group>"; };
+		1ABBCE351832151000DC1835 /* perthpanosmall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = perthpanosmall.jpg; sourceTree = "<group>"; };
+		1ABBCE371832173600DC1835 /* perthpano2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = perthpano2.jpg; sourceTree = "<group>"; };
+		1ABBCE391832281B00DC1835 /* perthpano3.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = perthpano3.jpg; sourceTree = "<group>"; };
 		2B07456D1826C6020092FA56 /* URBMediaFocusViewControllerDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URBMediaFocusViewControllerDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B0745701826C6020092FA56 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2B0745721826C6020092FA56 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -155,6 +163,10 @@
 			children = (
 				1ABBCDF01831CD3500DC1835 /* perth01.png */,
 				2B0745A61826D0E00092FA56 /* seattle01.jpg */,
+				1ABBCE331832147700DC1835 /* perthpano.jpg */,
+				1ABBCE351832151000DC1835 /* perthpanosmall.jpg */,
+				1ABBCE371832173600DC1835 /* perthpano2.jpg */,
+				1ABBCE391832281B00DC1835 /* perthpano3.jpg */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -235,8 +247,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B07457B1826C6020092FA56 /* InfoPlist.strings in Resources */,
+				1ABBCE3A1832281B00DC1835 /* perthpano3.jpg in Resources */,
+				1ABBCE361832151000DC1835 /* perthpanosmall.jpg in Resources */,
+				1ABBCE381832173600DC1835 /* perthpano2.jpg in Resources */,
 				2B0745A71826D0E00092FA56 /* seattle01.jpg in Resources */,
 				2B0745831826C6020092FA56 /* Images.xcassets in Resources */,
+				1ABBCE341832147700DC1835 /* perthpano.jpg in Resources */,
 				1ABBCDF11831CD3500DC1835 /* perth01.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
