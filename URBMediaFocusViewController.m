@@ -102,6 +102,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     self.dblTapRecognizer.numberOfTouchesRequired = 1;
     
     [self.imageView addGestureRecognizer:self.dblTapRecognizer];
+
+    // tap to dismiss
+    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissFromTap:)];
+    [self.view addGestureRecognizer:tgr];
     
 	// UIDynamics stuff
 	self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
@@ -195,8 +199,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		[self.targetViewController.view tintColorDidChange];
 		[self.targetViewController addChildViewController:self];
 
-        [self.targetViewController.view addSubview:self.snapshotViewBelow];
-        [self.targetViewController.view addSubview:self.snapshotViewAbove];
+        if (self.parallaxMode) {
+            [self.targetViewController.view addSubview:self.snapshotViewBelow];
+            [self.targetViewController.view addSubview:self.snapshotViewAbove];
+        }
 		[self.targetViewController.view addSubview:self.view];
 	}
 	else {
@@ -204,8 +210,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
 		[self.keyWindow tintColorDidChange];
         
-        [self.keyWindow addSubview:self.snapshotViewBelow];
-        [self.keyWindow addSubview:self.snapshotViewAbove];
+        if (self.parallaxMode) {
+            [self.keyWindow addSubview:self.snapshotViewBelow];
+            [self.keyWindow addSubview:self.snapshotViewAbove];
+        }
 		[self.keyWindow addSubview:self.view];
 	}
 	
@@ -254,14 +262,33 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	[self.urlConnection start];
 }
 
-- (void)dismiss:(BOOL)animated {
+- (void)dismissFromTap:(id)sender
+{
+    [self dismiss:YES shrinkingImageView:YES];
+}
+
+- (void)dismissFromSwipeAway
+{
+    [self dismiss:YES shrinkingImageView:NO];
+}
+
+- (void)dismiss:(BOOL)animated shrinkingImageView:(BOOL)shrinkImageView {
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+
 		self.backgroundView.alpha = 0.0f;
+        
+        if (shrinkImageView) {
+            CGRect fromRect = [self.view convertRect:self.fromView.frame fromView:nil];
+            self.imageView.frame = fromRect;
+            self.imageView.alpha = 0.0f;
+        }
+        
         if (self.parallaxMode) {
             self.snapshotViewAbove.alpha = 0.f;
             self.snapshotViewAbove.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1., 1.);
             self.snapshotViewBelow.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1., 1.);
         }
+        
 	} completion:^(BOOL finished) {
 		[self cleanup];
         
@@ -450,7 +477,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 				
 				// delay for dismissing is based on push velocity also
 				CGFloat delay = 0.75f - (pushVelocity / 10000.0f);
-				[self performSelector:@selector(dismiss:) withObject:nil afterDelay:delay * __velocityFactor];
+				[self performSelector:@selector(dismissFromSwipeAway) withObject:nil afterDelay:delay * __velocityFactor];
 			}
 			else {
 				[self returnToCenter];
@@ -616,10 +643,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     UIView *containerView = [self _containerViewForWindow:window];
     UIImage *snapshotImage = [self _snapshotImageWithView:containerView];
     UIImageView *snapshotImageView = [self _snapshotImageViewWithSnapshotImage:snapshotImage withCenter:window.center];
-    
-    //add a dismiss tap gesture recognizer to the imageview
-    UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismiss:)];
-    [snapshotImageView addGestureRecognizer:tgr];
     
     return snapshotImageView;
 }
