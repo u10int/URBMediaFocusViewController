@@ -363,11 +363,10 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 
 - (void)doubleTapped:(UITapGestureRecognizer *)tapGestureRecognizer
 {
-    float newScale = self.scrollView.zoomScale * 4.0;
     if (self.scrollView.zoomScale > self.scrollView.minimumZoomScale) {
         [self.scrollView setZoomScale:self.scrollView.minimumZoomScale animated:YES];
-    }
-    else {
+    } else if (self.scrollView.maximumZoomScale != self.scrollView.minimumZoomScale) {
+        float newScale = self.scrollView.zoomScale * 4.0;
         CGRect zoomRect = [self zoomRectForScale:newScale
                                       withCenter:[tapGestureRecognizer locationInView:tapGestureRecognizer.view]];
         [self.scrollView zoomToRect:zoomRect animated:YES];
