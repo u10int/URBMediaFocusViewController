@@ -92,6 +92,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
         [self.imageView removeGestureRecognizer:self.panRecognizer];
     }
     
+    //keeps image view centered
     CGFloat offsetX = (scrollView.bounds.size.width > scrollView.contentSize.width)?
     (scrollView.bounds.size.width - scrollView.contentSize.width) * 0.5 : 0.0;
     
@@ -115,12 +116,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	self.imageView.contentMode = UIViewContentModeScaleAspectFit;
 	self.imageView.alpha = 0.0f;
 	self.imageView.userInteractionEnabled = YES;
-
-//    self.scrollView = [[UIScrollView alloc] initWithFrame:self.view.frame];
-//    self.scrollView.backgroundColor = [UIColor clearColor];
-//    self.scrollView.delegate = self;
-//    [self.scrollView addSubview:self.imageView];
-//    [self.view addSubview:self.scrollView];
 
 	self.panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
 	self.panRecognizer.delegate = self;
@@ -183,16 +178,18 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     //now configure scrollview accordingly
     self.scrollView.contentSize = image.size;
     CGFloat minimumZoomScale;
-    if ((image.size.height / image.size.width) >
-        (self.view.frame.size.height / self.view.frame.size.width)) {
+    CGFloat imageSizeRatio = image.size.height / image.size.width;
+    CGFloat viewRatio = self.view.frame.size.height / self.view.frame.size.width;
+    
+    if (imageSizeRatio > viewRatio) {
         minimumZoomScale = self.view.frame.size.height / image.size.height;
     } else {
         minimumZoomScale = self.view.frame.size.width / image.size.width;
     }
-//    self.scrollView.minimumZoomScale = minimumZoomScale;
+    
     self.scrollView.minimumZoomScale = 1.f;
     self.scrollView.maximumZoomScale = 1/minimumZoomScale;
-    self.scrollView.zoomScale = minimumZoomScale;
+    self.scrollView.zoomScale = 1.f;
 }
 
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
@@ -219,17 +216,20 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     
 	CGSize targetSize = image.size;
 	CGFloat scale = 1.0f;
-	if (targetSize.width > CGRectGetWidth(self.view.frame)) {
-		targetSize.width = CGRectGetWidth(self.view.frame);
-		scale = targetSize.width / image.size.width;
-		targetSize.height *= scale;
-	}
-	else if (targetSize.height > CGRectGetHeight(self.view.frame)) {
+
+    CGFloat imageSizeRatio = image.size.height / image.size.width;
+    CGFloat viewRatio = self.view.frame.size.height / self.view.frame.size.width;
+    
+    if (imageSizeRatio > viewRatio) {
 		targetSize.height = CGRectGetHeight(self.view.frame);
 		scale = targetSize.height / image.size.height;
 		targetSize.width *= scale;
-	}
-	
+    } else {
+		targetSize.width = CGRectGetWidth(self.view.frame);
+		scale = targetSize.width / image.size.width;
+		targetSize.height *= scale;
+    }
+    
 	// image view's destination frame is the size of the image capped to the width/height of the target view
 	CGPoint midpoint = CGPointMake(CGRectGetMidX(self.view.frame), CGRectGetMidY(self.view.frame));
 	CGRect targetRect = CGRectMake(midpoint.x - targetSize.width / 2.0, midpoint.y - targetSize.height / 2.0, targetSize.width, targetSize.height);

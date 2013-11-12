@@ -12,8 +12,12 @@
 @interface DemoViewController ()
 
 @property (nonatomic, strong) UIImageView *thumbnailView;
-@property (nonatomic, strong) UIImageView *parallaxThumbnailView;
 @property (nonatomic, strong) UIImageView *remoteThumbnailView;
+@property (nonatomic, strong) UIImageView *parallaxThumbnailView;
+@property (nonatomic, strong) UIImageView *parallaxThumbnailView2;
+@property (nonatomic, strong) UIImageView *parallaxThumbnailView3;
+@property (nonatomic, strong) UIImageView *parallaxThumbnailView4;
+
 @property (nonatomic, strong) NSMutableData *remoteData;
 @property (nonatomic, strong) URBMediaFocusViewController *mediaFocusController;
 @property (nonatomic, strong) NSURLConnection *connection;
@@ -59,10 +63,8 @@
 	[self.remoteThumbnailView addGestureRecognizer:remoteTapRecognizer];
 
 	
-    
 
-    self.parallaxThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(50.0, CGRectGetMaxY(self.remoteThumbnailView.frame) + 50.0,
-                                                                               100.0, 100.0)];
+    self.parallaxThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.thumbnailView.frame) + 50.0, 50.0, 100.0, 100.0)];
 	self.parallaxThumbnailView.backgroundColor = [UIColor darkGrayColor];
 	self.parallaxThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
 	self.parallaxThumbnailView.clipsToBounds = YES;
@@ -75,8 +77,54 @@
 	parallaxTapRecognizer.numberOfTapsRequired = 1;
 	parallaxTapRecognizer.numberOfTouchesRequired = 1;
 	[self.parallaxThumbnailView addGestureRecognizer:parallaxTapRecognizer];
+
     
     
+    self.parallaxThumbnailView2 = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.thumbnailView.frame) + 50.0, CGRectGetMaxY(self.thumbnailView.frame) + 50.0, 100.0, 100.0)];
+	self.parallaxThumbnailView2.backgroundColor = [UIColor darkGrayColor];
+	self.parallaxThumbnailView2.contentMode = UIViewContentModeScaleAspectFill;
+	self.parallaxThumbnailView2.clipsToBounds = YES;
+	self.parallaxThumbnailView2.userInteractionEnabled = YES;
+	self.parallaxThumbnailView2.image = [UIImage imageNamed:@"perthpano2.jpg"];
+	[self.view addSubview:self.parallaxThumbnailView2];
+	
+	// add tap gesture on thumbnail view to show focus view
+	UITapGestureRecognizer *parallaxTapRecognizer2 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showFocusView:)];
+	parallaxTapRecognizer2.numberOfTapsRequired = 1;
+	parallaxTapRecognizer2.numberOfTouchesRequired = 1;
+	[self.parallaxThumbnailView2 addGestureRecognizer:parallaxTapRecognizer2];
+
+
+    
+    
+    self.parallaxThumbnailView3 = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.thumbnailView.frame) + 50.0, CGRectGetMaxY(self.remoteThumbnailView.frame) + 50.0, 100.0, 100.0)];
+	self.parallaxThumbnailView3.backgroundColor = [UIColor darkGrayColor];
+	self.parallaxThumbnailView3.contentMode = UIViewContentModeScaleAspectFill;
+	self.parallaxThumbnailView3.clipsToBounds = YES;
+	self.parallaxThumbnailView3.userInteractionEnabled = YES;
+	self.parallaxThumbnailView3.image = [UIImage imageNamed:@"perthpano3.jpg"];
+	[self.view addSubview:self.parallaxThumbnailView3];
+	
+	// add tap gesture on thumbnail view to show focus view
+	UITapGestureRecognizer *parallaxTapRecognizer3 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showFocusView:)];
+	parallaxTapRecognizer3.numberOfTapsRequired = 1;
+	parallaxTapRecognizer3.numberOfTouchesRequired = 1;
+	[self.parallaxThumbnailView3 addGestureRecognizer:parallaxTapRecognizer3];
+    
+    
+    self.parallaxThumbnailView4 = [[UIImageView alloc] initWithFrame:CGRectMake(50.0, CGRectGetMaxY(self.remoteThumbnailView.frame) + 50.0, 100.0, 100.0)];
+	self.parallaxThumbnailView4.backgroundColor = [UIColor darkGrayColor];
+	self.parallaxThumbnailView4.contentMode = UIViewContentModeScaleAspectFill;
+	self.parallaxThumbnailView4.clipsToBounds = YES;
+	self.parallaxThumbnailView4.userInteractionEnabled = YES;
+	self.parallaxThumbnailView4.image = [UIImage imageNamed:@"perthpano.jpg"];
+	[self.view addSubview:self.parallaxThumbnailView4];
+	
+	// add tap gesture on thumbnail view to show focus view
+	UITapGestureRecognizer *parallaxTapRecognizer4 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showFocusView:)];
+	parallaxTapRecognizer4.numberOfTapsRequired = 1;
+	parallaxTapRecognizer4.numberOfTouchesRequired = 1;
+	[self.parallaxThumbnailView4 addGestureRecognizer:parallaxTapRecognizer4];
 
 	_remoteImageURL = @"http://apollo.urban10.net/random/oiab/01.jpg";
 }
@@ -107,9 +155,20 @@
 		url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
         self.mediaFocusController.parallaxMode = NO;
         [self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view];
-	} else if (gestureRecognizer.view == self.parallaxThumbnailView) {
+	} else {
+        NSString *imageName;
+        if (gestureRecognizer.view == self.parallaxThumbnailView) {
+            imageName = @"perth01.png";
+        } else if (gestureRecognizer.view == self.parallaxThumbnailView2) {
+            imageName = @"perthpano2.jpg";
+        } else if (gestureRecognizer.view == self.parallaxThumbnailView3) {
+            imageName = @"perthpano3.jpg";
+        } else {
+            imageName = @"perthpano.jpg";
+        }
+        
         self.mediaFocusController.parallaxMode = YES;
-        [self.mediaFocusController showImage:[UIImage imageNamed:@"perthpano3.jpg"]
+        [self.mediaFocusController showImage:[UIImage imageNamed:imageName]
                                     fromView:self.parallaxThumbnailView
                             inViewController:self];
     }
