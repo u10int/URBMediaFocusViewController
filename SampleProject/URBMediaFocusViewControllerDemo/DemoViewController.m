@@ -153,7 +153,7 @@
         
         self.mediaFocusController.parallaxMode = YES;
         [self.mediaFocusController showImage:[UIImage imageNamed:imageName]
-                                    fromView:self.parallaxThumbnailView
+                                    fromView:gestureRecognizer.view
                             inViewController:self];
     }
 	
