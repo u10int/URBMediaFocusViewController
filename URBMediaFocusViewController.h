@@ -48,7 +48,7 @@
 @interface URBMediaFocusViewController : UIViewController <UIDynamicAnimatorDelegate, UIGestureRecognizerDelegate, NSURLConnectionDataDelegate>
 
 @property (nonatomic, assign) BOOL shouldBlurBackground;
-@property (nonatomic, assign) BOOL enableParallax;
+@property (nonatomic, assign) BOOL parallaxEnabled;
 @property (nonatomic, readwrite) id<URBMediaFocusViewControllerDelegate> delegate;
 
 /**

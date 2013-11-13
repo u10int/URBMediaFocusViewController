@@ -78,7 +78,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		_unhideStatusBarOnDismiss = YES;
 		
 		self.shouldBlurBackground = YES;
-		self.enableParallax = YES;
+		self.parallaxEnabled = NO;
 	}
 	return self;
 }
@@ -166,7 +166,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.imageView.alpha = 0.2;
 	
 	// create snapshot of background if parallax is enabled
-	if (self.enableParallax) {
+	if (self.parallaxEnabled) {
 		[self createViewsForParallax];
 		
 		// hide status bar, but store whether or not we need to unhide it later when dismissing this view
