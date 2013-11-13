@@ -6,12 +6,32 @@
 //  Copyright (c) 2013 Urban10 Interactive. All rights reserved.
 //
 
+#import <Accelerate/Accelerate.h>
 #import "URBMediaFocusViewController.h"
 
-static const CGFloat __animationDuration = 0.25f;				// the base duration for present/dismiss animations (except physics-related ones)
+static const CGFloat __overlayAlpha = 0.7f;						// opacity of the black overlay displayed below the focused image
+static const CGFloat __animationDuration = 0.18f;				// the base duration for present/dismiss animations (except physics-related ones)
+static const CGFloat __maximumDismissDelay = 0.5f;				// maximum time of delay (in seconds) between when image view is push out and dismissal animations begin
 static const CGFloat __velocityFactor = 1.0f;					// affects how quickly the view is pushed out of the view
 static const CGFloat __angularVelocityFactor = 15.0f;			// adjusts the amount of spin applied to the view during a push force, increases towards the view bounds
 static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how much velocity is required for the push behavior to be applied
+
+/* parallax options */
+static const CGFloat __backgroundScale = 0.9f;					// defines how much the background view should be scaled
+static const CGFloat __blurRadius = 2.0f;						// defines how much the background view is blurred
+static const CGFloat __blurSaturationDeltaMask = 0.8f;
+static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint the background view
+
+@interface UIView (URBMediaFocusViewController)
+- (UIImage *)snapshotImageWithScale:(CGFloat)scale;
+@end
+
+/**
+ Pulled from Apple's UIImage+ImageEffects category, but renamed to avoid potential selector name conflicts.
+ */
+@interface UIImage (URBImageEffects)
+- (UIImage *)URB_applyBlurWithRadius:(CGFloat)blurRadius tintColor:(UIColor *)tintColor saturationDeltaFactor:(CGFloat)saturationDeltaFactor maskImage:(UIImage *)maskImage;
+@end
 
 @interface URBMediaFocusViewController ()
 
@@ -36,6 +56,9 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 @property (nonatomic, strong) NSURLConnection *urlConnection;
 @property (nonatomic, strong) NSMutableData *urlData;
 
+@property (nonatomic, strong) UIView *blurredSnapshotView;
+@property (nonatomic, strong) UIView *snapshotView;
+
 @end
 
 @implementation URBMediaFocusViewController {
@@ -45,12 +68,17 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	CGFloat _lastPinchScale;
 	UIInterfaceOrientation _currentOrientation;
 	BOOL _hasLaidOut;
+	BOOL _unhideStatusBarOnDismiss;
 }
 
 - (id)init {
 	self = [super init];
 	if (self) {
 		_hasLaidOut = NO;
+		_unhideStatusBarOnDismiss = YES;
+		
+		self.shouldBlurBackground = YES;
+		self.enableParallax = YES;
 	}
 	return self;
 }
@@ -137,6 +165,16 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	self.imageView.image = image;
 	self.imageView.alpha = 0.2;
 	
+	// create snapshot of background if parallax is enabled
+	if (self.enableParallax) {
+		[self createViewsForParallax];
+		
+		// hide status bar, but store whether or not we need to unhide it later when dismissing this view
+		// NOTE: in iOS 7+, this only works if you set `UIViewControllerBasedStatusBarAppearance` to YES in your Info.plist
+		_unhideStatusBarOnDismiss = ![UIApplication sharedApplication].statusBarHidden;
+		[[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
+	}
+	
 	CGSize targetSize = image.size;
 	CGFloat scale = 1.0f;
 	if (targetSize.width > CGRectGetWidth(self.view.frame)) {
@@ -183,18 +221,35 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 		[self.targetViewController.view tintColorDidChange];
 		[self.targetViewController addChildViewController:self];
 		[self.targetViewController.view addSubview:self.view];
+		
+		if (self.snapshotView) {
+			[self.targetViewController.view insertSubview:self.snapshotView belowSubview:self.view];
+			[self.targetViewController.view insertSubview:self.blurredSnapshotView aboveSubview:self.snapshotView];
+		}
 	}
 	else {
 		// add this view to the main window if no targetViewController was set
 		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
 		[self.keyWindow tintColorDidChange];
 		[self.keyWindow addSubview:self.view];
+		
+		if (self.snapshotView) {
+			[self.keyWindow insertSubview:self.snapshotView belowSubview:self.view];
+			[self.keyWindow insertSubview:self.blurredSnapshotView aboveSubview:self.snapshotView];
+		}
 	}
 	
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 1.0f;
 		self.imageView.alpha = 1.0f;
 		self.imageView.frame = targetRect;
+		
+		if (self.snapshotView) {
+			self.blurredSnapshotView.alpha = 1.0f;
+			self.blurredSnapshotView.transform = CGAffineTransformScale(CGAffineTransformIdentity, __backgroundScale, __backgroundScale);
+			self.snapshotView.transform = CGAffineTransformScale(CGAffineTransformIdentity, __backgroundScale, __backgroundScale);
+		}
+		
 	} completion:^(BOOL finished) {
 		[self.imageView addGestureRecognizer:self.pinchRecognizer];
 		if (self.targetViewController) {
@@ -241,6 +296,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 }
 
 - (void)dismissAfterPush {
+	[self hideSnapshotView];
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 0.0f;
 	} completion:^(BOOL finished) {
@@ -249,6 +305,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 }
 
 - (void)dismissToTargetView {
+	[self hideSnapshotView];
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.imageView.frame = [self.view convertRect:self.fromView.frame fromView:nil];
 		//self.imageView.alpha = 0.0f;
@@ -262,10 +319,60 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	} completion:nil];
 }
 
+- (void)hideSnapshotView {
+	// only unhide status bar if it wasn't hidden before this view appeared
+	if (_unhideStatusBarOnDismiss) {
+		[[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
+	}
+	
+	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+		self.blurredSnapshotView.alpha = 0.0f;
+		self.blurredSnapshotView.transform = CGAffineTransformIdentity;
+		self.snapshotView.transform = CGAffineTransformIdentity;
+	} completion:^(BOOL finished) {
+		[self.snapshotView removeFromSuperview];
+		[self.blurredSnapshotView removeFromSuperview];
+		self.snapshotView = nil;
+		self.blurredSnapshotView = nil;
+	}];
+}
+
 #pragma mark - Private Methods
 
 - (UIWindow *)keyWindow {
 	return [UIApplication sharedApplication].keyWindow;
+}
+
+- (void)createViewsForParallax {
+	// container view for window
+	// inset container view so we can blur the edges, but we also need to scale up so when __backgroundScale is applied, everything lines up
+	CGRect containerFrame = CGRectMake(0, 0, CGRectGetWidth(self.keyWindow.frame) * (1.0f / __backgroundScale), CGRectGetHeight(self.keyWindow.frame) * (1.0f / __backgroundScale));
+	UIView *containerView = [[UIView alloc] initWithFrame:CGRectIntegral(containerFrame)];
+	containerView.backgroundColor = [UIColor blackColor];
+	
+	// add snapshot of window to the container
+	UIImage *windowSnapshot = [self.keyWindow snapshotImageWithScale:[UIScreen mainScreen].scale];
+	UIImageView *windowSnapshotView = [[UIImageView alloc] initWithImage:windowSnapshot];
+	windowSnapshotView.center = containerView.center;
+	[containerView addSubview:windowSnapshotView];
+	containerView.center = self.keyWindow.center;
+	
+	UIImageView *snapshotView;
+	// only add blurred view if radius is above 0
+	if (self.shouldBlurBackground && __blurRadius) {
+		UIImage *snapshot = [containerView snapshotImageWithScale:[UIScreen mainScreen].scale];
+		snapshot = [snapshot URB_applyBlurWithRadius:__blurRadius
+										   tintColor:[UIColor colorWithWhite:0.0f alpha:__blurTintColorAlpha]
+							   saturationDeltaFactor:__blurSaturationDeltaMask
+										   maskImage:nil];
+		snapshotView = [[UIImageView alloc] initWithImage:snapshot];
+		snapshotView.center = containerView.center;
+		snapshotView.alpha = 0.0f;
+		snapshotView.userInteractionEnabled = NO;
+	}
+	
+	self.snapshotView = containerView;
+	self.blurredSnapshotView = snapshotView;
 }
 
 - (void)adjustFrame {
@@ -438,7 +545,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 				self.pushBehavior.active = YES;
 				
 				// delay for dismissing is based on push velocity also
-				CGFloat delay = 0.75f - (pushVelocity / 10000.0f);
+				CGFloat delay = __maximumDismissDelay - (pushVelocity / 10000.0f);
 				[self performSelector:@selector(dismissAfterPush) withObject:nil afterDelay:delay * __velocityFactor];
 			}
 			else {
@@ -555,6 +662,250 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	else {
 		self.imageView.transform = CGAffineTransformConcat(self.imageView.transform, baseTransform);
 	}
+}
+
+@end
+
+
+@implementation UIView (URBMediaFocusViewController)
+
+- (UIImage *)snapshotImageWithScale:(CGFloat)scale {
+	UIGraphicsBeginImageContextWithOptions(self.bounds.size, NO, scale);
+	if ([self respondsToSelector:@selector(drawViewHierarchyInRect:afterScreenUpdates:)]) {
+		[self drawViewHierarchyInRect:self.bounds afterScreenUpdates:YES];
+	}
+	else {
+		[self.layer renderInContext:UIGraphicsGetCurrentContext()];
+	}
+	
+	UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	
+	return image;
+}
+
+@end
+
+
+/*
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
+ Inc. ("Apple") in consideration of your agreement to the following
+ terms, and your use, installation, modification or redistribution of
+ this Apple software constitutes acceptance of these terms.  If you do
+ not agree with these terms, please do not use, install, modify or
+ redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software.
+ Neither the name, trademarks, service marks or logos of Apple Inc. may
+ be used to endorse or promote products derived from the Apple Software
+ without specific prior written permission from Apple.  Except as
+ expressly stated in this notice, no other rights or licenses, express or
+ implied, are granted by Apple herein, including but not limited to any
+ patent rights that may be infringed by your derivative works or by other
+ works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ 
+ Copyright (C) 2013 Apple Inc. All Rights Reserved.
+ 
+ 
+ Copyright © 2013 Apple Inc. All rights reserved.
+ WWDC 2013 License
+ 
+ NOTE: This Apple Software was supplied by Apple as part of a WWDC 2013
+ Session. Please refer to the applicable WWDC 2013 Session for further
+ information.
+ 
+ IMPORTANT: This Apple software is supplied to you by Apple Inc.
+ ("Apple") in consideration of your agreement to the following terms, and
+ your use, installation, modification or redistribution of this Apple
+ software constitutes acceptance of these terms. If you do not agree with
+ these terms, please do not use, install, modify or redistribute this
+ Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a non-exclusive license, under
+ Apple's copyrights in this original Apple software (the "Apple
+ Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software.
+ Neither the name, trademarks, service marks or logos of Apple Inc. may
+ be used to endorse or promote products derived from the Apple Software
+ without specific prior written permission from Apple. Except as
+ expressly stated in this notice, no other rights or licenses, express or
+ implied, are granted by Apple herein, including but not limited to any
+ patent rights that may be infringed by your derivative works or by other
+ works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis. APPLE MAKES
+ NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+ IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ 
+ EA1002
+ 5/3/2013
+ */
+@implementation UIImage (URBImageEffects)
+
+- (UIImage *)URB_applyBlurWithRadius:(CGFloat)blurRadius tintColor:(UIColor *)tintColor saturationDeltaFactor:(CGFloat)saturationDeltaFactor maskImage:(UIImage *)maskImage {
+	// Check pre-conditions.
+    if (self.size.width < 1 || self.size.height < 1) {
+        NSLog (@"*** error: invalid size: (%.2f x %.2f). Both dimensions must be >= 1: %@", self.size.width, self.size.height, self);
+        return nil;
+    }
+    if (!self.CGImage) {
+        NSLog (@"*** error: image must be backed by a CGImage: %@", self);
+        return nil;
+    }
+    if (maskImage && !maskImage.CGImage) {
+        NSLog (@"*** error: maskImage must be backed by a CGImage: %@", maskImage);
+        return nil;
+    }
+	
+    CGRect imageRect = { CGPointZero, self.size };
+    UIImage *effectImage = self;
+    
+    BOOL hasBlur = blurRadius > __FLT_EPSILON__;
+    BOOL hasSaturationChange = fabs(saturationDeltaFactor - 1.) > __FLT_EPSILON__;
+    if (hasBlur || hasSaturationChange) {
+        UIGraphicsBeginImageContextWithOptions(self.size, NO, [[UIScreen mainScreen] scale]);
+        CGContextRef effectInContext = UIGraphicsGetCurrentContext();
+        CGContextScaleCTM(effectInContext, 1.0, -1.0);
+        CGContextTranslateCTM(effectInContext, 0, -self.size.height);
+        CGContextDrawImage(effectInContext, imageRect, self.CGImage);
+		
+        vImage_Buffer effectInBuffer;
+        effectInBuffer.data     = CGBitmapContextGetData(effectInContext);
+        effectInBuffer.width    = CGBitmapContextGetWidth(effectInContext);
+        effectInBuffer.height   = CGBitmapContextGetHeight(effectInContext);
+        effectInBuffer.rowBytes = CGBitmapContextGetBytesPerRow(effectInContext);
+		
+        UIGraphicsBeginImageContextWithOptions(self.size, NO, [[UIScreen mainScreen] scale]);
+        CGContextRef effectOutContext = UIGraphicsGetCurrentContext();
+        vImage_Buffer effectOutBuffer;
+        effectOutBuffer.data     = CGBitmapContextGetData(effectOutContext);
+        effectOutBuffer.width    = CGBitmapContextGetWidth(effectOutContext);
+        effectOutBuffer.height   = CGBitmapContextGetHeight(effectOutContext);
+        effectOutBuffer.rowBytes = CGBitmapContextGetBytesPerRow(effectOutContext);
+		
+        if (hasBlur) {
+            // A description of how to compute the box kernel width from the Gaussian
+            // radius (aka standard deviation) appears in the SVG spec:
+            // http://www.w3.org/TR/SVG/filters.html#feGaussianBlurElement
+            //
+            // For larger values of 's' (s >= 2.0), an approximation can be used: Three
+            // successive box-blurs build a piece-wise quadratic convolution kernel, which
+            // approximates the Gaussian kernel to within roughly 3%.
+            //
+            // let d = floor(s * 3*sqrt(2*pi)/4 + 0.5)
+            //
+            // ... if d is odd, use three box-blurs of size 'd', centered on the output pixel.
+            //
+            CGFloat inputRadius = blurRadius * [[UIScreen mainScreen] scale];
+            NSUInteger radius = floor(inputRadius * 3. * sqrt(2 * M_PI) / 4 + 0.5);
+            if (radius % 2 != 1) {
+                radius += 1; // force radius to be odd so that the three box-blur methodology works.
+            }
+            vImageBoxConvolve_ARGB8888(&effectInBuffer, &effectOutBuffer, NULL, 0, 0, radius, radius, 0, kvImageEdgeExtend);
+            vImageBoxConvolve_ARGB8888(&effectOutBuffer, &effectInBuffer, NULL, 0, 0, radius, radius, 0, kvImageEdgeExtend);
+            vImageBoxConvolve_ARGB8888(&effectInBuffer, &effectOutBuffer, NULL, 0, 0, radius, radius, 0, kvImageEdgeExtend);
+        }
+        BOOL effectImageBuffersAreSwapped = NO;
+        if (hasSaturationChange) {
+            CGFloat s = saturationDeltaFactor;
+            CGFloat floatingPointSaturationMatrix[] = {
+                0.0722 + 0.9278 * s,  0.0722 - 0.0722 * s,  0.0722 - 0.0722 * s,  0,
+                0.7152 - 0.7152 * s,  0.7152 + 0.2848 * s,  0.7152 - 0.7152 * s,  0,
+                0.2126 - 0.2126 * s,  0.2126 - 0.2126 * s,  0.2126 + 0.7873 * s,  0,
+				0,                    0,                    0,  1,
+            };
+            const int32_t divisor = 256;
+            NSUInteger matrixSize = sizeof(floatingPointSaturationMatrix)/sizeof(floatingPointSaturationMatrix[0]);
+            int16_t saturationMatrix[matrixSize];
+            for (NSUInteger i = 0; i < matrixSize; ++i) {
+                saturationMatrix[i] = (int16_t)roundf(floatingPointSaturationMatrix[i] * divisor);
+            }
+            if (hasBlur) {
+                vImageMatrixMultiply_ARGB8888(&effectOutBuffer, &effectInBuffer, saturationMatrix, divisor, NULL, NULL, kvImageNoFlags);
+                effectImageBuffersAreSwapped = YES;
+            }
+            else {
+                vImageMatrixMultiply_ARGB8888(&effectInBuffer, &effectOutBuffer, saturationMatrix, divisor, NULL, NULL, kvImageNoFlags);
+            }
+        }
+        if (!effectImageBuffersAreSwapped)
+            effectImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+		
+        if (effectImageBuffersAreSwapped)
+            effectImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+    }
+	
+    // Set up output context.
+    UIGraphicsBeginImageContextWithOptions(self.size, NO, [[UIScreen mainScreen] scale]);
+    CGContextRef outputContext = UIGraphicsGetCurrentContext();
+    CGContextScaleCTM(outputContext, 1.0, -1.0);
+    CGContextTranslateCTM(outputContext, 0, -self.size.height);
+	
+    // Draw base image.
+    CGContextDrawImage(outputContext, imageRect, self.CGImage);
+	
+    // Draw effect image.
+    if (hasBlur) {
+        CGContextSaveGState(outputContext);
+        if (maskImage) {
+            CGContextClipToMask(outputContext, imageRect, maskImage.CGImage);
+        }
+        CGContextDrawImage(outputContext, imageRect, effectImage.CGImage);
+        CGContextRestoreGState(outputContext);
+    }
+	
+    // Add in color tint.
+    if (tintColor) {
+        CGContextSaveGState(outputContext);
+        CGContextSetFillColorWithColor(outputContext, tintColor.CGColor);
+        CGContextFillRect(outputContext, imageRect);
+        CGContextRestoreGState(outputContext);
+    }
+	
+    // Output image is ready.
+    UIImage *outputImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+	
+    return outputImage;
 }
 
 @end
