@@ -29,6 +29,8 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 @property (nonatomic, readonly) UIWindow *keyWindow;
 @property (nonatomic, strong) UIPinchGestureRecognizer *pinchRecognizer;
 @property (nonatomic, strong) UIPanGestureRecognizer *panRecognizer;
+@property (nonatomic, strong) UITapGestureRecognizer *doubleTapRecognizer;
+@property (nonatomic, strong) UITapGestureRecognizer *tapRecognizer;
 
 @property (nonatomic, strong) UIActivityIndicatorView *loadingView;
 @property (nonatomic, strong) NSURLConnection *urlConnection;
@@ -74,14 +76,29 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	self.imageView.userInteractionEnabled = YES;
 	[self.view addSubview:self.imageView];
 	
+	/* setup gesture recognizers */
 	self.pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handlePinchGesture:)];
 	self.pinchRecognizer.delegate = self;
 	self.panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
 	self.panRecognizer.delegate = self;
-	
 	[self.imageView addGestureRecognizer:self.panRecognizer];
 	
-	// UIDynamics stuff
+	// double tap gesture to return scaled image back to center for easier dismissal
+	self.doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTapGesture:)];
+	self.doubleTapRecognizer.delegate = self;
+	self.doubleTapRecognizer.numberOfTapsRequired = 2;
+	self.doubleTapRecognizer.numberOfTouchesRequired = 1;
+	[self.imageView addGestureRecognizer:self.doubleTapRecognizer];
+	
+	// tap recognizer on area outside image view for dismissing
+	self.tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDismissFromTap:)];
+	self.tapRecognizer.delegate = self;
+	self.tapRecognizer.numberOfTapsRequired = 1;
+	self.tapRecognizer.numberOfTouchesRequired = 1;
+	[self.tapRecognizer requireGestureRecognizerToFail:self.doubleTapRecognizer];
+	[self.view addGestureRecognizer:self.tapRecognizer];
+	
+	/* UIDynamics stuff */
 	self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
 	self.animator.delegate = self;
 	
@@ -213,11 +230,36 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 }
 
 - (void)dismiss:(BOOL)animated {
+	if (animated) {
+		[self dismissToTargetView];
+	}
+	else {
+		self.backgroundView.alpha = 0.0f;
+		self.imageView.alpha = 0.0f;
+		[self cleanup];
+	}
+}
+
+- (void)dismissAfterPush {
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 0.0f;
 	} completion:^(BOOL finished) {
 		[self cleanup];
 	}];
+}
+
+- (void)dismissToTargetView {
+	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+		self.imageView.frame = [self.view convertRect:self.fromView.frame fromView:nil];
+		//self.imageView.alpha = 0.0f;
+		self.backgroundView.alpha = 0.0f;
+	} completion:^(BOOL finished) {
+		[self cleanup];
+	}];
+	// offset image fade out slightly than background/frame animation
+	[UIView animateWithDuration:__animationDuration - 0.1 delay:0.05 options:UIViewAnimationOptionCurveEaseOut animations:^{
+		self.imageView.alpha = 0.0f;
+	} completion:nil];
 }
 
 #pragma mark - Private Methods
@@ -397,7 +439,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 				
 				// delay for dismissing is based on push velocity also
 				CGFloat delay = 0.75f - (pushVelocity / 10000.0f);
-				[self performSelector:@selector(dismiss:) withObject:nil afterDelay:delay * __velocityFactor];
+				[self performSelector:@selector(dismissAfterPush) withObject:nil afterDelay:delay * __velocityFactor];
 			}
 			else {
 				[self returnToCenter];
@@ -406,11 +448,28 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	}
 }
 
+- (void)handleDoubleTapGesture:(UITapGestureRecognizer *)gestureRecognizer {
+	[self returnToCenter];
+}
+
+- (void)handleDismissFromTap:(UITapGestureRecognizer *)gestureRecognizer {
+	CGPoint location = [gestureRecognizer locationInView:self.view];
+	// make sure tap was on background and not image view
+	if (!CGRectContainsPoint(self.imageView.frame, location)) {
+		[self dismissToTargetView];
+	}
+}
+
 #pragma mark - UIGestureRecognizerDelegate Methods
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
 	CGFloat transformScale = self.imageView.transform.a;
-	return (transformScale > _minScale);
+	BOOL shouldRecognize = transformScale > _minScale;
+	
+	// make sure tap and double tap gestures aren't recognized simultaneously
+	shouldRecognize = !([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]] && [otherGestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]);
+	
+	return shouldRecognize;
 }
 
 #pragma mark - NSURLConnectionDelegate
