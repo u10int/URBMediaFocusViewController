@@ -47,7 +47,7 @@
 
 @interface URBMediaFocusViewController : UIViewController <UIDynamicAnimatorDelegate, UIGestureRecognizerDelegate, NSURLConnectionDataDelegate>
 
-@property (nonatomic, readwrite) id<URBMediaFocusViewControllerDelegate> delegate;
+@property (nonatomic, readwrite, weak) id<URBMediaFocusViewControllerDelegate> delegate;
 @property (nonatomic, assign) BOOL parallaxMode;
 
 /**

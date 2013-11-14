@@ -7,9 +7,9 @@
 //
 
 #import "URBMediaFocusViewController.h"
-#import <UIDevice-Hardware.h>
 #import "UIView-JTViewToImage.h"
 #import "UIImage+ImageEffects.h"
+#import <UIDevice-Hardware.h>
 
 static const CGFloat __shrinkScale = .9f;
 static const CGFloat __blurRadius = 2.f;

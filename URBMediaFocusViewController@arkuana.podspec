@@ -2,10 +2,11 @@ Pod::Spec.new do |s|
 
   s.name         = "URBMediaFocusViewController@arkuana"
   s.version      = "0.0.1"
-  s.summary      = "An easy-to-use view controller that animates thumbnail previews of your media to their full size versions with physics similar to Tweetbot 3."
+  s.summary      = "A view controller that presents your media front and center similar to how Tweetbot 3 does it."
 
   s.description  = <<-DESC
-                   A fork of URBMediaFocusViewController that adds the sunken window effect and allows smooth scrolling of a zoomed image when presented.
+                   An easy-to-use view controller that animates thumbnail previews of your media to their full size versions with physics similar to Tweetbot 3.
+                   This is a fork of URBMediaFocusViewController that adds the sunken window effect and allows smooth scrolling of a zoomed image when presented.
                    DESC
 
   s.homepage     = "https://github.com/arkuana/URBMediaFocusViewController"
