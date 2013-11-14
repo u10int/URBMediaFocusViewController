@@ -7,7 +7,7 @@
 //
 
 #import "URBMediaFocusViewController.h"
-#import "UIDeviceHardware.h"
+#import <UIDevice-Hardware.h>
 #import "UIView-JTViewToImage.h"
 #import "UIImage+ImageEffects.h"
 
@@ -214,7 +214,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
         self.snapshotViewAbove = [self _borderedSnapshotImageViewForWindow:window];
 
         //make sure we hide the status bar after taking the snapshot
-        [self _setStatusBarHidden:YES];
+        [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
     }
     
 	self.fromView = fromView;
@@ -392,7 +392,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 - (void)dismiss:(BOOL)animated shrinkingImageView:(BOOL)shrinkImageView {
     
     if (self.parallaxMode) {
-        [self _setStatusBarHidden:NO];
+        [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
     }
     
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -685,11 +685,6 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 #pragma mark -
 #pragma mark Parallax Helpers
 
-- (void)_setStatusBarHidden:(BOOL)hidden
-{
-    [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:UIStatusBarAnimationNone];
-}
-
 - (UIView *)_containerViewForWindow:(UIWindow *)window
 {
     CGFloat extraWidth = window.frame.size.width - (window.frame.size.width * __shrinkScale) + 10.f;
@@ -716,7 +711,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     UIImage *snapshotImage;
     
     //take another snapshot of the result and either ...
-    if ([UIDeviceHardware supportsBlur]) {
+    if ([UIDevice supportsBlur]) {
         //blur it (if supported)
         snapshotImage = [view toImage];
         snapshotImage = [snapshotImage applyBlurWithRadius:__blurRadius

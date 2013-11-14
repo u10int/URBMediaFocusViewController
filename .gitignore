@@ -14,6 +14,9 @@ xcuserdata
 profile
 *.moved-aside
 
+Pods/*
+Podfile.lock
+
 # osx noise
 .DS_Store
 

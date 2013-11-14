@@ -10,9 +10,6 @@
 		1A784BD61832615C009873AF /* perthpanosmall.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1A784BD31832615C009873AF /* perthpanosmall.jpg */; };
 		1A784BD71832615C009873AF /* thumb.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A784BD41832615C009873AF /* thumb.png */; };
 		1A784BD81832615C009873AF /* thumb@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A784BD51832615C009873AF /* thumb@2x.png */; };
-		1A98C65B183120D400B34510 /* UIDeviceHardware.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C65A183120D400B34510 /* UIDeviceHardware.m */; };
-		1A98C65E183120DA00B34510 /* UIView-JTViewToImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */; };
-		1A98C661183120DF00B34510 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */; };
 		1ABBCDF11831CD3500DC1835 /* perth01.png in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBCDF01831CD3500DC1835 /* perth01.png */; };
 		1ABBCE381832173600DC1835 /* perthpano01.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBCE371832173600DC1835 /* perthpano01.jpg */; };
 		1ABBCE3A1832281B00DC1835 /* perthpano02.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBCE391832281B00DC1835 /* perthpano02.jpg */; };
@@ -29,6 +26,7 @@
 		2B0745A41826CBAB0092FA56 /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745A31826CBAB0092FA56 /* DemoViewController.m */; };
 		2B0745A71826D0E00092FA56 /* seattle01.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B0745A61826D0E00092FA56 /* seattle01.jpg */; };
 		2B0745AA182729AF0092FA56 /* URBMediaFocusViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745A9182729AF0092FA56 /* URBMediaFocusViewController.m */; };
+		5D9303FCF3B148FFB3A0CDDF /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B1E7AB020FDE422CA915F36B /* libPods.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,15 +43,10 @@
 		1A784BD31832615C009873AF /* perthpanosmall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = perthpanosmall.jpg; sourceTree = "<group>"; };
 		1A784BD41832615C009873AF /* thumb.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = thumb.png; sourceTree = "<group>"; };
 		1A784BD51832615C009873AF /* thumb@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "thumb@2x.png"; sourceTree = "<group>"; };
-		1A98C659183120D400B34510 /* UIDeviceHardware.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIDeviceHardware.h; sourceTree = "<group>"; };
-		1A98C65A183120D400B34510 /* UIDeviceHardware.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIDeviceHardware.m; sourceTree = "<group>"; };
-		1A98C65C183120DA00B34510 /* UIView-JTViewToImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView-JTViewToImage.h"; sourceTree = "<group>"; };
-		1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView-JTViewToImage.m"; sourceTree = "<group>"; };
-		1A98C65F183120DF00B34510 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
-		1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
 		1ABBCDF01831CD3500DC1835 /* perth01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = perth01.png; sourceTree = "<group>"; };
 		1ABBCE371832173600DC1835 /* perthpano01.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = perthpano01.jpg; sourceTree = "<group>"; };
 		1ABBCE391832281B00DC1835 /* perthpano02.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = perthpano02.jpg; sourceTree = "<group>"; };
+		273C1DC202954D1CAD584ED2 /* Pods.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = ../Pods/Pods.xcconfig; sourceTree = "<group>"; };
 		2B07456D1826C6020092FA56 /* URBMediaFocusViewControllerDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URBMediaFocusViewControllerDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B0745701826C6020092FA56 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2B0745721826C6020092FA56 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -72,6 +65,7 @@
 		2B0745A61826D0E00092FA56 /* seattle01.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = seattle01.jpg; sourceTree = "<group>"; };
 		2B0745A8182729AF0092FA56 /* URBMediaFocusViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = URBMediaFocusViewController.h; path = ../URBMediaFocusViewController.h; sourceTree = "<group>"; };
 		2B0745A9182729AF0092FA56 /* URBMediaFocusViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = URBMediaFocusViewController.m; path = ../URBMediaFocusViewController.m; sourceTree = "<group>"; };
+		B1E7AB020FDE422CA915F36B /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +76,7 @@
 				2B0745731826C6020092FA56 /* CoreGraphics.framework in Frameworks */,
 				2B0745751826C6020092FA56 /* UIKit.framework in Frameworks */,
 				2B0745711826C6020092FA56 /* Foundation.framework in Frameworks */,
+				5D9303FCF3B148FFB3A0CDDF /* libPods.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -106,6 +101,7 @@
 				2B0745761826C6020092FA56 /* URBMediaFocusViewControllerDemo */,
 				2B07456F1826C6020092FA56 /* Frameworks */,
 				2B07456E1826C6020092FA56 /* Products */,
+				273C1DC202954D1CAD584ED2 /* Pods.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -125,6 +121,7 @@
 				2B0745721826C6020092FA56 /* CoreGraphics.framework */,
 				2B0745741826C6020092FA56 /* UIKit.framework */,
 				2B0745891826C6020092FA56 /* XCTest.framework */,
+				B1E7AB020FDE422CA915F36B /* libPods.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -136,12 +133,6 @@
 				2B0745801826C6020092FA56 /* AppDelegate.m */,
 				2B0745A21826CBAB0092FA56 /* DemoViewController.h */,
 				2B0745A31826CBAB0092FA56 /* DemoViewController.m */,
-				1A98C659183120D400B34510 /* UIDeviceHardware.h */,
-				1A98C65A183120D400B34510 /* UIDeviceHardware.m */,
-				1A98C65C183120DA00B34510 /* UIView-JTViewToImage.h */,
-				1A98C65D183120DA00B34510 /* UIView-JTViewToImage.m */,
-				1A98C65F183120DF00B34510 /* UIImage+ImageEffects.h */,
-				1A98C660183120DF00B34510 /* UIImage+ImageEffects.m */,
 				2B0745821826C6020092FA56 /* Images.xcassets */,
 				2B0745A51826D0E00092FA56 /* Resources */,
 				2B0745771826C6020092FA56 /* Supporting Files */,
@@ -181,9 +172,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2B0745991826C6020092FA56 /* Build configuration list for PBXNativeTarget "URBMediaFocusViewControllerDemo" */;
 			buildPhases = (
+				3050FF267E1042769A9879CD /* Check Pods Manifest.lock */,
 				2B0745691826C6020092FA56 /* Sources */,
 				2B07456A1826C6020092FA56 /* Frameworks */,
 				2B07456B1826C6020092FA56 /* Resources */,
+				B4ABE648DED64D43BFA05265 /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -270,15 +263,45 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		3050FF267E1042769A9879CD /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		B4ABE648DED64D43BFA05265 /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/../Pods/Pods-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		2B0745691826C6020092FA56 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A98C65E183120DA00B34510 /* UIView-JTViewToImage.m in Sources */,
 				2B0745AA182729AF0092FA56 /* URBMediaFocusViewController.m in Sources */,
-				1A98C661183120DF00B34510 /* UIImage+ImageEffects.m in Sources */,
-				1A98C65B183120D400B34510 /* UIDeviceHardware.m in Sources */,
 				2B0745811826C6020092FA56 /* AppDelegate.m in Sources */,
 				2B07457D1826C6020092FA56 /* main.m in Sources */,
 				2B0745A41826CBAB0092FA56 /* DemoViewController.m in Sources */,
@@ -390,6 +413,7 @@
 		};
 		2B07459A1826C6020092FA56 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 273C1DC202954D1CAD584ED2 /* Pods.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -403,6 +427,7 @@
 		};
 		2B07459B1826C6020092FA56 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 273C1DC202954D1CAD584ED2 /* Pods.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
