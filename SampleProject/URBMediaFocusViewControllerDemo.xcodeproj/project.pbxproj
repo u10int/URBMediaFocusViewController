@@ -20,7 +20,6 @@
 		2B07457D1826C6020092FA56 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B07457C1826C6020092FA56 /* main.m */; };
 		2B0745811826C6020092FA56 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745801826C6020092FA56 /* AppDelegate.m */; };
 		2B0745831826C6020092FA56 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B0745821826C6020092FA56 /* Images.xcassets */; };
-		2B07458A1826C6020092FA56 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745891826C6020092FA56 /* XCTest.framework */; };
 		2B07458B1826C6020092FA56 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745701826C6020092FA56 /* Foundation.framework */; };
 		2B07458C1826C6020092FA56 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745741826C6020092FA56 /* UIKit.framework */; };
 		2B0745A41826CBAB0092FA56 /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745A31826CBAB0092FA56 /* DemoViewController.m */; };
@@ -59,7 +58,6 @@
 		2B0745801826C6020092FA56 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		2B0745821826C6020092FA56 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		2B0745881826C6020092FA56 /* URBMediaFocusViewControllerDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = URBMediaFocusViewControllerDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		2B0745891826C6020092FA56 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		2B0745A21826CBAB0092FA56 /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		2B0745A31826CBAB0092FA56 /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
 		2B0745A61826D0E00092FA56 /* seattle01.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = seattle01.jpg; sourceTree = "<group>"; };
@@ -84,7 +82,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B07458A1826C6020092FA56 /* XCTest.framework in Frameworks */,
 				2B07458C1826C6020092FA56 /* UIKit.framework in Frameworks */,
 				2B07458B1826C6020092FA56 /* Foundation.framework in Frameworks */,
 			);
@@ -120,7 +117,6 @@
 				2B0745701826C6020092FA56 /* Foundation.framework */,
 				2B0745721826C6020092FA56 /* CoreGraphics.framework */,
 				2B0745741826C6020092FA56 /* UIKit.framework */,
-				2B0745891826C6020092FA56 /* XCTest.framework */,
 				B1E7AB020FDE422CA915F36B /* libPods.a */,
 			);
 			name = Frameworks;
