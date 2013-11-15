@@ -9,6 +9,18 @@ URBMediaFocusViewController
 
 ## Installation
 
+### Installing with CocoaPods
+
+[CocoaPods](http://cocoapods.org) is a dependency manager for Objective-C, which automates and simplifies the process of using 3rd-party libraries in your projects.
+
+Add the following to your `Podfile` and run `$ pod install`:
+
+	pod "URBMediaFocusViewController"
+	
+If you don't have CocoaPods installed or integrated into your project, you can learn how to do via [CocoaPods](http://cocoapods.org/).
+
+### Installing Manually
+
 To use `URBMediaFocusViewController` in your own project, just import `URBMediaFocusViewController.h` and `URBMediaFocusViewController.m` files into your project, and then include "`URBMediaFocusViewController.h`" where needed, or in your precompiled header.
 
 The project uses ARC and targets iOS 7.0+.
@@ -50,7 +62,7 @@ Note that currently if you disable the parallax effect, the background blur will
 
 ## TODO
 
-- Add CocoaPods spec'
+- ~~Add CocoaPods spec~~ (added 11/15/2013)
 - Support for handling device orientation changes
 - Add support for loading videos similar to the method for remote photos
 - Consider adding support for additional present/dismiss transition animations
