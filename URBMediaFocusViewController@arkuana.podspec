@@ -15,7 +15,11 @@ Pod::Spec.new do |s|
   s.platform     = :ios, '7.0'
   s.source       = { :git => "https://github.com/arkuana/URBMediaFocusViewController.git", :tag => s.version.to_s }
   s.source_files  = 'URBMediaFocusViewController.{h,m}'
+  s.requires_arc = true
 
   s.framework  = 'UIKit', 'Foundation', 'CoreGraphics'
+  s.dependency 'UIView-JTViewToImage'
+  s.dependency 'UIDevice-Hardware@arkuana'
+  s.dependency 'UIImageEffects'
 
 end
