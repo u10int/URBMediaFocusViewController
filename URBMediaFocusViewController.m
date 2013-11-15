@@ -556,7 +556,27 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)handleDoubleTapGesture:(UITapGestureRecognizer *)gestureRecognizer {
-	[self returnToCenter];
+	CGFloat transformScale = self.imageView.transform.a;
+	// if tranformScale is 1.0, then image is being displayed at the initial state
+	// if the image is larger than the size of this view, then double-tapping should scale the image to its original size
+	// if the current transform scale is not 1.0, then the image is already scaled so double-tapping returns the image to center
+	if (transformScale == 1.0f) {
+		CGSize imageSize = self.imageView.image.size;
+		CGFloat scale = 1.0f;
+		if (imageSize.width > CGRectGetWidth(self.imageView.frame)) {
+			scale = imageSize.width / CGRectGetWidth(self.imageView.frame);
+		}
+		else if (imageSize.height > CGRectGetHeight(self.imageView.frame)) {
+			scale = imageSize.height / CGRectGetHeight(self.imageView.frame);
+		}
+		
+		[UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+			self.imageView.transform = CGAffineTransformMakeScale(scale, scale);
+		} completion:nil];
+	}
+	else {
+		[self returnToCenter];
+	}
 }
 
 - (void)handleDismissFromTap:(UITapGestureRecognizer *)gestureRecognizer {
