@@ -59,6 +59,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 	CGFloat _maxScale;
 	UIInterfaceOrientation _currentOrientation;
 	BOOL _hasLaidOut;
+    UIStatusBarStyle _currentStatusBarStyle;
 }
 
 - (id)init {
@@ -214,6 +215,7 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
         self.snapshotViewAbove = [self _borderedSnapshotImageViewForWindow:window];
 
         //make sure we hide the status bar after taking the snapshot
+        _currentStatusBarStyle = [UIApplication sharedApplication].statusBarStyle;
         [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
     }
     
@@ -396,6 +398,8 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
 - (void)dismiss:(BOOL)animated shrinkingImageView:(BOOL)shrinkImageView {
     
     if (self.parallaxMode) {
+        //restore the old status bar style too
+        [[UIApplication sharedApplication] setStatusBarStyle:_currentStatusBarStyle];
         [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
     }
     
