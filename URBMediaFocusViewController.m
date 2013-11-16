@@ -218,7 +218,11 @@ static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how mu
     }
     
 	self.fromView = fromView;
-	self.targetViewController = parentViewController;
+    
+    // if the view controller has a navigation controller, use that instead
+    // (so the effect of a sunken window isn't lost, without having to instruct users to
+    // provide navigation controllers when calling this method)
+    self.targetViewController = (parentViewController.navigationController) ? parentViewController.navigationController : parentViewController;
 	
     [self.view setNeedsDisplay];
 	self.fromRect = [fromView.superview convertRect:fromView.frame toView:nil];
