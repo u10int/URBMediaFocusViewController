@@ -20,6 +20,9 @@
 		2B0745A41826CBAB0092FA56 /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745A31826CBAB0092FA56 /* DemoViewController.m */; };
 		2B0745A71826D0E00092FA56 /* seattle01.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B0745A61826D0E00092FA56 /* seattle01.jpg */; };
 		2B0745AA182729AF0092FA56 /* URBMediaFocusViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745A9182729AF0092FA56 /* URBMediaFocusViewController.m */; };
+		2B18684B183C758500539B97 /* raceforfood.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684A183C758500539B97 /* raceforfood.jpg */; };
+		2B18684D183C852900539B97 /* panorama.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684C183C852900539B97 /* panorama.jpg */; };
+		2B18684F183C869300539B97 /* panorama_vert.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684E183C869300539B97 /* panorama_vert.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +54,9 @@
 		2B0745A61826D0E00092FA56 /* seattle01.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = seattle01.jpg; sourceTree = "<group>"; };
 		2B0745A8182729AF0092FA56 /* URBMediaFocusViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = URBMediaFocusViewController.h; path = ../URBMediaFocusViewController.h; sourceTree = "<group>"; };
 		2B0745A9182729AF0092FA56 /* URBMediaFocusViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = URBMediaFocusViewController.m; path = ../URBMediaFocusViewController.m; sourceTree = "<group>"; };
+		2B18684A183C758500539B97 /* raceforfood.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = raceforfood.jpg; sourceTree = "<group>"; };
+		2B18684C183C852900539B97 /* panorama.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = panorama.jpg; sourceTree = "<group>"; };
+		2B18684E183C869300539B97 /* panorama_vert.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = panorama_vert.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -136,6 +142,9 @@
 		2B0745A51826D0E00092FA56 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2B18684E183C869300539B97 /* panorama_vert.jpg */,
+				2B18684C183C852900539B97 /* panorama.jpg */,
+				2B18684A183C758500539B97 /* raceforfood.jpg */,
 				2B0745A61826D0E00092FA56 /* seattle01.jpg */,
 			);
 			path = Resources;
@@ -216,8 +225,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B18684B183C758500539B97 /* raceforfood.jpg in Resources */,
 				2B07457B1826C6020092FA56 /* InfoPlist.strings in Resources */,
 				2B0745A71826D0E00092FA56 /* seattle01.jpg in Resources */,
+				2B18684F183C869300539B97 /* panorama_vert.jpg in Resources */,
+				2B18684D183C852900539B97 /* panorama.jpg in Resources */,
 				2B0745831826C6020092FA56 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -289,6 +301,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Nicholas Shipes (RCNW495Q44)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -329,6 +342,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Nicholas Shipes (RCNW495Q44)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
