@@ -13,15 +13,16 @@
 
 @property (nonatomic, strong) UIImageView *thumbnailView;
 @property (nonatomic, strong) UIImageView *remoteThumbnailView;
+@property (nonatomic, strong) UIImageView *localThumbnailView;
+@property (nonatomic, strong) UIImageView *panoramaThumbnailView;
+@property (nonatomic, strong) UIImageView *verticalPanoramaThumbnailView;
 @property (nonatomic, strong) NSMutableData *remoteData;
 @property (nonatomic, strong) URBMediaFocusViewController *mediaFocusController;
 @property (nonatomic, strong) NSURLConnection *connection;
 
 @end
 
-@implementation DemoViewController {
-	NSString *_remoteImageURL;
-}
+@implementation DemoViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -29,34 +30,49 @@
 	self.mediaFocusController = [[URBMediaFocusViewController alloc] init];
 	self.mediaFocusController.delegate = self;
 	
-	self.thumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(50.0, 50.0, 100.0, 100.0)];
+	self.thumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(30.0, 50.0, 100.0, 100.0)];
 	self.thumbnailView.backgroundColor = [UIColor darkGrayColor];
 	self.thumbnailView.contentMode = UIViewContentModeScaleAspectFill;
 	self.thumbnailView.clipsToBounds = YES;
 	self.thumbnailView.userInteractionEnabled = YES;
 	self.thumbnailView.image = [UIImage imageNamed:@"seattle01.jpg"];
 	[self.view addSubview:self.thumbnailView];
+	[self addTapGestureToView:self.thumbnailView];
 	
-	// add tap gesture on thumbnail view to show focus view
-	UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showFocusView:)];
-	tapRecognizer.numberOfTapsRequired = 1;
-	tapRecognizer.numberOfTouchesRequired = 1;
-	[self.thumbnailView addGestureRecognizer:tapRecognizer];
-	
-	self.remoteThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(50.0, CGRectGetMaxY(self.thumbnailView.frame) + 50.0, 100.0, 100.0)];
+	self.remoteThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMinX(self.thumbnailView.frame), CGRectGetMaxY(self.thumbnailView.frame) + 30.0, 100.0, 100.0)];
 	self.remoteThumbnailView.backgroundColor = [UIColor darkGrayColor];
 	self.remoteThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
 	self.remoteThumbnailView.clipsToBounds = YES;
 	self.remoteThumbnailView.userInteractionEnabled = YES;
 	[self.view addSubview:self.remoteThumbnailView];
+	[self addTapGestureToView:self.remoteThumbnailView];
 	
-	// add tap gesture on thumbnail view to show focus view
-	UITapGestureRecognizer *remoteTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showFocusView:)];
-	remoteTapRecognizer.numberOfTapsRequired = 1;
-	remoteTapRecognizer.numberOfTouchesRequired = 1;
-	[self.remoteThumbnailView addGestureRecognizer:remoteTapRecognizer];
+	self.localThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMinX(self.thumbnailView.frame), CGRectGetMaxY(self.remoteThumbnailView.frame) + 30.0, 100.0, 100.0)];
+	self.localThumbnailView.backgroundColor = [UIColor darkGrayColor];
+	self.localThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
+	self.localThumbnailView.clipsToBounds = YES;
+	self.localThumbnailView.userInteractionEnabled = YES;
+	self.localThumbnailView.image = [UIImage imageNamed:@"raceforfood.jpg"];
+	[self.view addSubview:self.localThumbnailView];
+	[self addTapGestureToView:self.localThumbnailView];
 	
-	_remoteImageURL = @"http://apollo.urban10.net/random/oiab/01.jpg";
+	self.panoramaThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMinX(self.thumbnailView.frame), CGRectGetMaxY(self.localThumbnailView.frame) + 30.0, 100.0, 100.0)];
+	self.panoramaThumbnailView.backgroundColor = [UIColor darkGrayColor];
+	self.panoramaThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
+	self.panoramaThumbnailView.clipsToBounds = YES;
+	self.panoramaThumbnailView.userInteractionEnabled = YES;
+	self.panoramaThumbnailView.image = [UIImage imageNamed:@"panorama.jpg"];
+	[self.view addSubview:self.panoramaThumbnailView];
+	[self addTapGestureToView:self.panoramaThumbnailView];
+	
+	self.verticalPanoramaThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.thumbnailView.frame) + 30.0f, CGRectGetMinY(self.thumbnailView.frame), 100.0, 100.0)];
+	self.verticalPanoramaThumbnailView.backgroundColor = [UIColor darkGrayColor];
+	self.verticalPanoramaThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
+	self.verticalPanoramaThumbnailView.clipsToBounds = YES;
+	self.verticalPanoramaThumbnailView.userInteractionEnabled = YES;
+	self.verticalPanoramaThumbnailView.image = [UIImage imageNamed:@"panorama_vert.jpg"];
+	[self.view addSubview:self.verticalPanoramaThumbnailView];
+	[self addTapGestureToView:self.verticalPanoramaThumbnailView];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -77,17 +93,38 @@
 - (void)showFocusView:(UITapGestureRecognizer *)gestureRecognizer {
 	//[self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView inView:self.view];
 	
-	NSURL *url;
-	if (gestureRecognizer.view == self.remoteThumbnailView) {
-		url = [NSURL URLWithString:_remoteImageURL];
+	if (gestureRecognizer.view == self.localThumbnailView) {
+		[self.mediaFocusController showImage:[UIImage imageNamed:@"raceforfood.jpg"] fromView:gestureRecognizer.view];
+	}
+	else if (gestureRecognizer.view == self.panoramaThumbnailView) {
+		[self.mediaFocusController showImage:[UIImage imageNamed:@"panorama.jpg"] fromView:gestureRecognizer.view];
+	}
+	else if (gestureRecognizer.view == self.verticalPanoramaThumbnailView) {
+		[self.mediaFocusController showImage:[UIImage imageNamed:@"panorama_vert.jpg"] fromView:gestureRecognizer.view];
 	}
 	else {
-		url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
+		NSURL *url;
+		if (gestureRecognizer.view == self.remoteThumbnailView) {
+			url = [NSURL URLWithString:@"http://apollo.urban10.net/random/oiab/01.jpg"];
+		}
+		else if (gestureRecognizer.view == self.localThumbnailView) {
+			url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
+		}
+		else {
+			url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
+		}
+		[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view];
+		
+		// alternative method adding the focus view to this controller's view
+		//[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inViewController:self];
 	}
-	[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view];
-	
-	// alternative method adding the focus view to this controller's view
-	//[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inViewController:self];
+}
+
+- (void)addTapGestureToView:(UIView *)view {
+	UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showFocusView:)];
+	tapRecognizer.numberOfTapsRequired = 1;
+	tapRecognizer.numberOfTouchesRequired = 1;
+	[view addGestureRecognizer:tapRecognizer];
 }
 
 #pragma mark - URBMediaFocusViewControllerDelegate Methods
