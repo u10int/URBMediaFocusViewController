@@ -5,7 +5,7 @@ URBMediaFocusViewController
 
 `URBMediaFocusViewController` is an experiment to recreate the view used to enlarge photos and videos from their thumbnail previews as seen in [Tweetbot 3](https://itunes.apple.com/app/id722294701) for iOS 7 using the new UIDynamics API available in iOS 7.
 
-![Basic example](https://dl.dropboxusercontent.com/u/197980/Screenshots/URBMediaFocusViewController02.gif)
+![Basic example](https://dl.dropboxusercontent.com/u/197980/Screenshots/URBMediaFocusViewController03.gif)
 
 ## Installation
 
@@ -60,10 +60,15 @@ By default, parallax and blur effects are enabled. To disable one or both effect
 
 Note that currently if you disable the parallax effect, the background blur will also be disabled.
 
+By default, tapping on the image will not dismiss the focus view, but tapping outside of the image bounds will. You can change this by setting `shouldDismissOnTap` to `YES` on your `URBMediaFocusViewController` instance, which will allow tapping directly on the image to dismiss:
+
+	self.shouldDismissOnTap = YES;
+
 ## TODO
 
 - ~~Add CocoaPods spec~~ (added 11/15/2013)
 - Support for handling device orientation changes
+- Support for focusing in image from a web view (issue #6)
 - Add support for loading videos similar to the method for remote photos
 - Consider adding support for additional present/dismiss transition animations
 
