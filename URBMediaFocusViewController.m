@@ -15,7 +15,7 @@ static const CGFloat __maximumDismissDelay = 0.5f;				// maximum time of delay (
 static const CGFloat __resistance = 0.0f;						// linear resistance applied to the image’s dynamic item behavior
 static const CGFloat __density = 1.0f;							// relative mass density applied to the image's dynamic item behavior
 static const CGFloat __velocityFactor = 1.0f;					// affects how quickly the view is pushed out of the view
-static const CGFloat __angularVelocityFactor = 12.0f;			// adjusts the amount of spin applied to the view during a push force, increases towards the view bounds
+static const CGFloat __angularVelocityFactor = 1.0f;			// adjusts the amount of spin applied to the view during a push force, increases towards the view bounds
 static const CGFloat __minimumVelocityRequiredForPush = 50.0f;	// defines how much velocity is required for the push behavior to be applied
 
 /* parallax options */
@@ -187,7 +187,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	CGFloat scaleWidth = CGRectGetWidth(self.scrollView.frame) / self.scrollView.contentSize.width;
 	CGFloat scaleHeight = CGRectGetHeight(self.scrollView.frame) / self.scrollView.contentSize.height;
 	CGFloat scale = MIN(scaleWidth, scaleHeight);
-	NSLog(@"contentSize=%@, scaleWidth=%f, scaleHeight=%f", NSStringFromCGSize(self.scrollView.contentSize), scaleWidth, scaleHeight);
 	
 	// image view's destination frame is the size of the image capped to the width/height of the target view
 	CGPoint midpoint = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
@@ -216,8 +215,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	_lastPinchScale = 1.0f;
 	_hasLaidOut = YES;
 	
-	NSLog(@"calculated scale=%f, scrollView.minimumzoomScale=%f, scrollView.maximumzoomScale=%f", scale, self.scrollView.minimumZoomScale, self.scrollView.maximumZoomScale);
-	NSLog(@"targetRect=%@", NSStringFromCGRect(targetRect));
+//	NSLog(@"calculated scale=%f, scrollView.minimumzoomScale=%f, scrollView.maximumzoomScale=%f", scale, self.scrollView.minimumZoomScale, self.scrollView.maximumZoomScale);
+//	NSLog(@"targetRect=%@", NSStringFromCGRect(targetRect));
 	
 	// register for device orientation changes
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
@@ -486,29 +485,40 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		CGFloat velocityAdjust = 10.0f * deviceScale;
 		
 		if (fabs(velocity.x / velocityAdjust) > __minimumVelocityRequiredForPush || fabs(velocity.y / velocityAdjust) > __minimumVelocityRequiredForPush) {
-			//CGFloat angle = atan2f(velocity.y, velocity.x) * 180.0f / M_PI;
+			UIOffset offsetFromCenter = UIOffsetMake(boxLocation.x - CGRectGetMidX(self.imageView.bounds), boxLocation.y - CGRectGetMidY(self.imageView.bounds));
+			CGFloat radius = sqrtf(powf(offsetFromCenter.horizontal, 2.0f) + powf(offsetFromCenter.vertical, 2.0f));
+			CGFloat pushVelocity = sqrtf(powf(velocity.x, 2.0f) + powf(velocity.y, 2.0f));
+			
+			// calculate angles needed for angular velocity formula
+			CGFloat velocityAngle = atan2f(velocity.y, velocity.x);
+			CGFloat locationAngle = atan2f(offsetFromCenter.vertical, offsetFromCenter.horizontal);
+			if (locationAngle > 0) {
+				locationAngle -= M_PI * 2;
+			}
+			
+			// angle (θ) is the angle between the push vector (V) and vector component parallel to radius, so it should always be positive
+			CGFloat angle = fabsf(fabsf(velocityAngle) - fabsf(locationAngle));
+			// angular velocity formula: w = (abs(V) * sin(θ)) / abs(r)
+			CGFloat angularVelocity = fabsf((fabsf(pushVelocity) * sinf(angle)) / fabsf(radius));
 			
 			// rotation direction is dependent upon which corner was pushed relative to the center of the view
 			// when velocity.y is positive, pushes to the right of center rotate clockwise, left is counterclockwise
 			CGFloat direction = (location.x < view.center.x) ? -1.0f : 1.0f;
-			
 			// when y component of velocity is negative, reverse direction
 			if (velocity.y < 0) { direction *= -1; }
 			
 			// amount of angular velocity should be relative to how close to the edge of the view the force originated
 			// angular velocity is reduced the closer to the center the force is applied
 			// for angular velocity: positive = clockwise, negative = counterclockwise
-			CGFloat angularVelocity = __angularVelocityFactor * (fabsf(CGRectGetWidth(self.imageView.frame) / 2.0 - boxLocation.x)) / (CGRectGetWidth(self.imageView.frame) / 2.0);
-			
-			NSLog(@"boxLocation.x=%f, factor=%f", boxLocation.x, (fabsf(CGRectGetWidth(self.imageView.frame) / 2.0 - boxLocation.x)) / (CGRectGetWidth(self.imageView.frame) / 2.0));
-			
-			// amount of angular velocity should also be relative to the push velocity, faster velocity gives more spin
-			CGFloat pushVelocity = sqrtf(powf(velocity.x, 2.0f) + powf(velocity.y, 2.0f));
-			angularVelocity *= (pushVelocity / 1000.0f);
+			CGFloat xRatioFromCenter = fabsf(offsetFromCenter.horizontal) / (CGRectGetWidth(self.imageView.frame) / 2.0f);
+			CGFloat yRatioFromCetner = fabsf(offsetFromCenter.vertical) / (CGRectGetHeight(self.imageView.frame) / 2.0f);
+
 			// apply device scale to angular velocity
 			angularVelocity *= deviceScale;
+			// adjust angular velocity based on distance from center, force applied farther towards the edges gets more spin
+			angularVelocity *= ((xRatioFromCenter + yRatioFromCetner) / 2.0f);
 			
-			[self.itemBehavior addAngularVelocity:angularVelocity * direction forItem:self.imageView];
+			[self.itemBehavior addAngularVelocity:angularVelocity * __angularVelocityFactor * direction forItem:self.imageView];
 			[self.animator addBehavior:self.pushBehavior];
 			self.pushBehavior.pushDirection = CGVectorMake((velocity.x / velocityAdjust) * __velocityFactor, (velocity.y / velocityAdjust) * __velocityFactor);
 			self.pushBehavior.active = YES;
