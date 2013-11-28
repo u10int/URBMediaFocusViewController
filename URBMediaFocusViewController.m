@@ -81,6 +81,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		
 		self.shouldBlurBackground = YES;
 		self.parallaxEnabled = YES;
+		self.shouldDismissOnTap = NO;
 	}
 	return self;
 }
@@ -552,7 +553,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (void)handleDismissFromTap:(UITapGestureRecognizer *)gestureRecognizer {
 	CGPoint location = [gestureRecognizer locationInView:self.view];
 	// make sure tap was on background and not image view
-	if (!CGRectContainsPoint(self.imageView.frame, location)) {
+	if (self.shouldDismissOnTap || !CGRectContainsPoint(self.imageView.frame, location)) {
 		[self dismissToTargetView];
 	}
 }
