@@ -82,4 +82,9 @@
  */
 - (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController;
 
+/**
+ *  Stop downloading the image (useful when closing a window while the image is downloading)
+ */
+- (void)cancelURLConnectionIfAny;
+
 @end
