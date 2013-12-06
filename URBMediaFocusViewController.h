@@ -50,7 +50,7 @@
 @property (nonatomic, assign) BOOL shouldBlurBackground;
 @property (nonatomic, assign) BOOL parallaxEnabled;
 @property (nonatomic, assign) BOOL shouldDismissOnTap;
-@property (nonatomic, readwrite) id<URBMediaFocusViewControllerDelegate> delegate;
+@property (nonatomic, weak) id<URBMediaFocusViewControllerDelegate> delegate;
 
 /**
  *  Convenience method for not using a parentViewController.
