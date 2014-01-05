@@ -65,6 +65,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 @implementation URBMediaFocusViewController {
 	CGRect _originalFrame;
+	CGRect _startFrame;
 	CGFloat _minScale;
 	CGFloat _maxScale;
 	CGFloat _lastPinchScale;
@@ -164,11 +165,18 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
-	
 	self.fromView = fromView;
 	self.targetViewController = parentViewController;
 	
 	CGRect fromRect = [self.view convertRect:fromView.frame fromView:nil];
+	[self showImage:image fromRect:fromRect];
+}
+
+- (void)showImage:(UIImage *)image fromRect:(CGRect)fromRect {
+	[self view]; // make sure view has loaded first
+	_currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
+	_startFrame = fromRect;
+	
 	self.imageView.transform = CGAffineTransformIdentity;
 	self.imageView.image = image;
 	self.imageView.alpha = 0.2;
@@ -197,7 +205,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	// set initial frame of image view to match that of the presenting image
 	//self.imageView.frame = CGRectMake(midpoint.x - image.size.width / 2.0, midpoint.y - image.size.height / 2.0, image.size.width, image.size.height);
-	self.imageView.frame = [self.view convertRect:fromView.frame fromView:nil];
+	self.imageView.frame = [self.view convertRect:fromRect fromView:nil];
 	_originalFrame = targetRect;
 	// rotate imageView based on current device orientation
 	[self reposition];
@@ -215,9 +223,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	_maxScale = self.scrollView.maximumZoomScale;
 	_lastPinchScale = 1.0f;
 	_hasLaidOut = YES;
-	
-//	NSLog(@"calculated scale=%f, scrollView.minimumzoomScale=%f, scrollView.maximumzoomScale=%f", scale, self.scrollView.minimumZoomScale, self.scrollView.maximumZoomScale);
-//	NSLog(@"targetRect=%@", NSStringFromCGRect(targetRect));
 	
 	// register for device orientation changes
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
