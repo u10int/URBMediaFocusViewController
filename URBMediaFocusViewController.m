@@ -231,8 +231,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	if (self.targetViewController) {
 		[self willMoveToParentViewController:self.targetViewController];
-		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
-		[self.targetViewController.view tintColorDidChange];
+        if ([UIView respondsToSelector:@selector(setTintColor:)]) {
+            self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
+            [self.targetViewController.view tintColorDidChange];
+        };
 		[self.targetViewController addChildViewController:self];
 		[self.targetViewController.view addSubview:self.view];
 		
@@ -243,8 +245,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}
 	else {
 		// add this view to the main window if no targetViewController was set
-		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
-		[self.keyWindow tintColorDidChange];
+        if ([UIView respondsToSelector:@selector(setTintColor:)]) {
+            self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
+            [self.keyWindow tintColorDidChange];
+        };
 		[self.keyWindow addSubview:self.view];
 		
 		if (self.snapshotView) {
@@ -448,14 +452,18 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	[self.view removeFromSuperview];
 	
 	if (self.targetViewController) {
-		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
-		[self.targetViewController.view tintColorDidChange];
+        if ([UIView respondsToSelector:@selector(setTintColor:)]) {
+            self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
+            [self.targetViewController.view tintColorDidChange];
+        };
 		[self willMoveToParentViewController:nil];
 		[self removeFromParentViewController];
 	}
 	else {
-		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
-		[self.keyWindow tintColorDidChange];
+        if ([UIView respondsToSelector:@selector(setTintColor:)]) {
+            self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
+            [self.keyWindow tintColorDidChange];
+        };
 	}
 	[self.animator removeAllBehaviors];
 	[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
