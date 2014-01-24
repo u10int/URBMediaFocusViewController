@@ -580,7 +580,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
 	// zoomScale of 1.0 is always our starting point, so anything other than that we disable the pan gesture recognizer
-	if (scrollView.zoomScale <= 1.0f) {
+	if (scrollView.zoomScale <= 1.0f && !scrollView.zooming) {
 		[self.imageView addGestureRecognizer:self.panRecognizer];
 		scrollView.scrollEnabled = NO;
 	}
