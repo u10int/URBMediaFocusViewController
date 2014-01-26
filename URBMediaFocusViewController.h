@@ -49,7 +49,13 @@
 
 @property (nonatomic, assign) BOOL shouldBlurBackground;
 @property (nonatomic, assign) BOOL parallaxEnabled;
+
+// determines whether or not view should be dismissed when the container view is tapped anywhere, including outside image bounds
 @property (nonatomic, assign) BOOL shouldDismissOnTap;
+
+// determines whether or not view should be dismissed when the container view is tapped within bounds of image view
+@property (nonatomic, assign) BOOL shouldDismissOnImageTap;
+
 @property (nonatomic, weak) id<URBMediaFocusViewControllerDelegate> delegate;
 
 /**

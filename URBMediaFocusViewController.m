@@ -38,6 +38,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 @interface URBMediaFocusViewController () <UIScrollViewDelegate>
 
 @property (nonatomic, strong) UIView *fromView;
+@property (nonatomic, assign) CGRect fromRect;
 @property (nonatomic, weak) UIViewController *targetViewController;
 
 @property (nonatomic, strong) UIImageView *imageView;
@@ -53,6 +54,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 @property (nonatomic, strong) UIPanGestureRecognizer *panRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *doubleTapRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *tapRecognizer;
+@property (nonatomic, strong) UITapGestureRecognizer *photoTapRecognizer;
 
 @property (nonatomic, strong) UIActivityIndicatorView *loadingView;
 @property (nonatomic, strong) NSURLConnection *urlConnection;
@@ -65,7 +67,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 @implementation URBMediaFocusViewController {
 	CGRect _originalFrame;
-	CGRect _startFrame;
 	CGFloat _minScale;
 	CGFloat _maxScale;
 	CGFloat _lastPinchScale;
@@ -82,7 +83,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		
 		self.shouldBlurBackground = YES;
 		self.parallaxEnabled = YES;
-		self.shouldDismissOnTap = NO;
+		self.shouldDismissOnTap = YES;
+		self.shouldDismissOnImageTap = YES;
 	}
 	return self;
 }
@@ -117,10 +119,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	[self.scrollView addSubview:self.imageView];
 	
 	/* setup gesture recognizers */
-	self.panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
-	self.panRecognizer.delegate = self;
-	[self.imageView addGestureRecognizer:self.panRecognizer];
-	
 	// double tap gesture to return scaled image back to center for easier dismissal
 	self.doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTapGesture:)];
 	self.doubleTapRecognizer.delegate = self;
@@ -136,25 +134,48 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	[self.tapRecognizer requireGestureRecognizerToFail:self.doubleTapRecognizer];
 	[self.view addGestureRecognizer:self.tapRecognizer];
 	
-	/* UIDynamics stuff */
-	self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
-	self.animator.delegate = self;
-	
-	// snap behavior to keep image view in the center as needed
-	self.snapBehavior = [[UISnapBehavior alloc] initWithItem:self.imageView snapToPoint:self.view.center];
-	self.snapBehavior.damping = 1.0f;
-	
-	self.pushBehavior = [[UIPushBehavior alloc] initWithItems:@[self.imageView] mode:UIPushBehaviorModeInstantaneous];
-	self.pushBehavior.angle = 0.0f;
-	self.pushBehavior.magnitude = 0.0f;
-	
-	self.itemBehavior = [[UIDynamicItemBehavior alloc] initWithItems:@[self.imageView]];
-	self.itemBehavior.elasticity = 0.0f;
-	self.itemBehavior.friction = 0.2f;
-	self.itemBehavior.allowsRotation = YES;
-	self.itemBehavior.density = __density;
-	self.itemBehavior.resistance = __resistance;
+	// only add pan gesture and physics stuff if we can (e.g., iOS 7+)
+	if (NSClassFromString(@"UIDynamicAnimator")) {
+		// pan gesture to handle the physics
+		self.panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
+		self.panRecognizer.delegate = self;
+		[self.imageView addGestureRecognizer:self.panRecognizer];
+		
+		/* UIDynamics stuff */
+		self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
+		self.animator.delegate = self;
+		
+		// snap behavior to keep image view in the center as needed
+		self.snapBehavior = [[UISnapBehavior alloc] initWithItem:self.imageView snapToPoint:self.view.center];
+		self.snapBehavior.damping = 1.0f;
+		
+		self.pushBehavior = [[UIPushBehavior alloc] initWithItems:@[self.imageView] mode:UIPushBehaviorModeInstantaneous];
+		self.pushBehavior.angle = 0.0f;
+		self.pushBehavior.magnitude = 0.0f;
+		
+		self.itemBehavior = [[UIDynamicItemBehavior alloc] initWithItems:@[self.imageView]];
+		self.itemBehavior.elasticity = 0.0f;
+		self.itemBehavior.friction = 0.2f;
+		self.itemBehavior.allowsRotation = YES;
+		self.itemBehavior.density = __density;
+		self.itemBehavior.resistance = __resistance;
+	}
+	else {
+		// add tap gesture to image to also dismiss since we don't have UIDynamics to flick out of view
+		self.photoTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDismissFromTap:)];
+		self.photoTapRecognizer.delegate = self;
+		self.photoTapRecognizer.numberOfTapsRequired = 1;
+		self.photoTapRecognizer.numberOfTouchesRequired = 1;
+		[self.photoTapRecognizer requireGestureRecognizerToFail:self.doubleTapRecognizer];
+		[self.imageView addGestureRecognizer:self.photoTapRecognizer];
+	}
 }
+
+- (void)cancelURLConnectionIfAny {
+    if (self.urlConnection) [self.urlConnection cancel];
+};
+
+#pragma mark - Presenting and Dismissing
 
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView {
 	[self showImage:image fromView:fromView inViewController:nil];
@@ -162,6 +183,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView {
 	[self showImageFromURL:url fromView:fromView inViewController:nil];
+}
+
+- (void)showImageFromURL:(NSURL *)url fromRect:(CGRect)fromRect {
+	
 }
 
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
@@ -175,7 +200,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (void)showImage:(UIImage *)image fromRect:(CGRect)fromRect {
 	[self view]; // make sure view has loaded first
 	_currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
-	_startFrame = fromRect;
+	self.fromRect = fromRect;
 	
 	self.imageView.transform = CGAffineTransformIdentity;
 	self.imageView.image = image;
@@ -231,8 +256,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	if (self.targetViewController) {
 		[self willMoveToParentViewController:self.targetViewController];
-		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
-		[self.targetViewController.view tintColorDidChange];
+		if ([UIView instancesRespondToSelector:@selector(setTintAdjustmentMode:)]) {
+			self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
+			[self.targetViewController.view tintColorDidChange];
+		}
 		[self.targetViewController addChildViewController:self];
 		[self.targetViewController.view addSubview:self.view];
 		
@@ -243,8 +270,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}
 	else {
 		// add this view to the main window if no targetViewController was set
-		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
-		[self.keyWindow tintColorDidChange];
+		if ([UIView instancesRespondToSelector:@selector(setTintAdjustmentMode:)]) {
+			self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
+			[self.keyWindow tintColorDidChange];
+		}
 		[self.keyWindow addSubview:self.view];
 		
 		if (self.snapshotView) {
@@ -298,10 +327,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	[self.urlConnection start];
 }
 
-- (void)cancelURLConnectionIfAny {
-    if (self.urlConnection) [self.urlConnection cancel];
-};
-
 - (void)dismiss:(BOOL)animated {
 	if (animated) {
 		[self dismissToTargetView];
@@ -324,8 +349,18 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)dismissToTargetView {
 	[self hideSnapshotView];
+	
+	if (self.scrollView.zoomScale != 1.0f) {
+		[self.scrollView setZoomScale:1.0f animated:NO];
+	}
+	
+	CGRect targetFrame = [self.view convertRect:self.fromView.frame fromView:nil];
+	if (!CGRectIsEmpty(self.fromRect)) {
+		targetFrame = self.fromRect;
+	}
+	
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-		self.imageView.frame = [self.view convertRect:self.fromView.frame fromView:nil];
+		self.imageView.frame = targetFrame;
 		//self.imageView.alpha = 0.0f;
 		self.backgroundView.alpha = 0.0f;
 	} completion:^(BOOL finished) {
@@ -335,24 +370,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	[UIView animateWithDuration:__animationDuration - 0.1 delay:0.05 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.imageView.alpha = 0.0f;
 	} completion:nil];
-}
-
-- (void)hideSnapshotView {
-	// only unhide status bar if it wasn't hidden before this view appeared
-	if (_unhideStatusBarOnDismiss) {
-		[[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
-	}
-	
-	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-		self.blurredSnapshotView.alpha = 0.0f;
-		self.blurredSnapshotView.transform = CGAffineTransformIdentity;
-		self.snapshotView.transform = CGAffineTransformIdentity;
-	} completion:^(BOOL finished) {
-		[self.snapshotView removeFromSuperview];
-		[self.blurredSnapshotView removeFromSuperview];
-		self.snapshotView = nil;
-		self.blurredSnapshotView = nil;
-	}];
 }
 
 #pragma mark - Private Methods
@@ -437,27 +454,55 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)returnToCenter {
-	[self.animator removeAllBehaviors];
+	if (self.animator) {
+		[self.animator removeAllBehaviors];
+	}
 	[UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.imageView.transform = CGAffineTransformIdentity;
 		self.imageView.frame = _originalFrame;
 	} completion:nil];
 }
 
+- (void)hideSnapshotView {
+	// only unhide status bar if it wasn't hidden before this view appeared
+	if (_unhideStatusBarOnDismiss) {
+		[[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
+	}
+	
+	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+		self.blurredSnapshotView.alpha = 0.0f;
+		self.blurredSnapshotView.transform = CGAffineTransformIdentity;
+		self.snapshotView.transform = CGAffineTransformIdentity;
+	} completion:^(BOOL finished) {
+		[self.snapshotView removeFromSuperview];
+		[self.blurredSnapshotView removeFromSuperview];
+		self.snapshotView = nil;
+		self.blurredSnapshotView = nil;
+	}];
+}
+
 - (void)cleanup {
 	[self.view removeFromSuperview];
 	
 	if (self.targetViewController) {
-		self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
-		[self.targetViewController.view tintColorDidChange];
+		if ([UIView instancesRespondToSelector:@selector(setTintAdjustmentMode:)]) {
+			self.targetViewController.view.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
+			[self.targetViewController.view tintColorDidChange];
+		}
 		[self willMoveToParentViewController:nil];
 		[self removeFromParentViewController];
 	}
 	else {
-		self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
-		[self.keyWindow tintColorDidChange];
+		if ([UIWindow instancesRespondToSelector:@selector(setTintAdjustmentMode:)]) {
+			self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeAutomatic;
+			[self.keyWindow tintColorDidChange];
+		}
 	}
-	[self.animator removeAllBehaviors];
+	
+	if (self.animator) {
+		[self.animator removeAllBehaviors];
+	}
+	
 	[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
@@ -561,8 +606,17 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)handleDismissFromTap:(UITapGestureRecognizer *)gestureRecognizer {
 	CGPoint location = [gestureRecognizer locationInView:self.view];
-	// make sure tap was on background and not image view
-	if (self.shouldDismissOnTap || !CGRectContainsPoint(self.imageView.frame, location)) {
+	
+	// if we are allowing a tap anywhere to dismiss, check if we allow taps within image bounds to dismiss also
+	// otherwise a tap outside image bounds will only be able to dismiss
+	if (self.shouldDismissOnTap) {
+		if (self.shouldDismissOnImageTap || !CGRectContainsPoint(self.imageView.frame, location)) {
+			[self dismissToTargetView];
+		}
+	}
+	
+	if (self.shouldDismissOnImageTap && CGRectContainsPoint(self.imageView.frame, location)) {
+		// we aren't allowing taps outside of image bounds to dismiss, but tap was detected on image view, we can dismiss
 		[self dismissToTargetView];
 	}
 }
@@ -575,12 +629,16 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
 	// zoomScale of 1.0 is always our starting point, so anything other than that we disable the pan gesture recognizer
-	if (scrollView.zoomScale <= 1.0f) {
-		[self.imageView addGestureRecognizer:self.panRecognizer];
+	if (scrollView.zoomScale <= 1.0f && !scrollView.zooming) {
+		if (self.panRecognizer) {
+			[self.imageView addGestureRecognizer:self.panRecognizer];
+		}
 		scrollView.scrollEnabled = NO;
 	}
 	else {
-		[self.imageView removeGestureRecognizer:self.panRecognizer];
+		if (self.panRecognizer) {
+			[self.imageView removeGestureRecognizer:self.panRecognizer];
+		}
 		scrollView.scrollEnabled = YES;
 	}
 	[self centerScrollViewContents];
