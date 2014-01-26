@@ -70,6 +70,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	CGFloat _minScale;
 	CGFloat _maxScale;
 	CGFloat _lastPinchScale;
+	CGFloat _lastZoomScale;
 	UIInterfaceOrientation _currentOrientation;
 	BOOL _hasLaidOut;
 	BOOL _unhideStatusBarOnDismiss;
@@ -446,6 +447,19 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}];
 }
 
+/**
+ *	When adding UIDynamics to a view, it resets `zoomScale` on UIScrollView back to 1.0, which is an issue when applying dynamics
+ *	to the imageView when scaled down. So we just scale the imageView.frame while dynamics are applied.
+ */
+- (void)scaleImageForDynamics {
+	_lastZoomScale = self.scrollView.zoomScale;
+	
+	CGRect imageFrame = self.imageView.frame;
+	imageFrame.size.width *= _lastZoomScale;
+	imageFrame.size.height *= _lastZoomScale;
+	self.imageView.frame = imageFrame;
+}
+
 - (void)centerScrollViewContents {
 	CGSize contentSize = self.scrollView.contentSize;
 	CGFloat offsetX = (CGRectGetWidth(self.scrollView.frame) > contentSize.width) ? (CGRectGetWidth(self.scrollView.frame) - contentSize.width) / 2.0f : 0.0f;
@@ -527,6 +541,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		//self.panAttachmentBehavior.frequency = 0.0f;
 		[self.animator addBehavior:self.panAttachmentBehavior];
 		[self.animator addBehavior:self.itemBehavior];
+		[self scaleImageForDynamics];
 	}
 	else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
 		self.panAttachmentBehavior.anchorPoint = location;
@@ -535,9 +550,12 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		[self.animator removeBehavior:self.panAttachmentBehavior];
 		
 		// need to scale velocity values to tame down physics on the iPad
-		CGFloat deviceScale = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) ? 0.25f : 1.0f;
+		CGFloat deviceVelocityScale = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) ? 0.2f : 1.0f;
+		CGFloat deviceAngularScale = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) ? 0.7f : 1.0f;
+		// factor to increase delay before `dismissAfterPush` is called on iPad to account for more area to cover to disappear
+		CGFloat deviceDismissDelay = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) ? 1.8f : 1.0f;
 		CGPoint velocity = [gestureRecognizer velocityInView:self.view];
-		CGFloat velocityAdjust = 10.0f * deviceScale;
+		CGFloat velocityAdjust = 10.0f * deviceVelocityScale;
 		
 		if (fabs(velocity.x / velocityAdjust) > __minimumVelocityRequiredForPush || fabs(velocity.y / velocityAdjust) > __minimumVelocityRequiredForPush) {
 			UIOffset offsetFromCenter = UIOffsetMake(boxLocation.x - CGRectGetMidX(self.imageView.bounds), boxLocation.y - CGRectGetMidY(self.imageView.bounds));
@@ -569,7 +587,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 			CGFloat yRatioFromCetner = fabsf(offsetFromCenter.vertical) / (CGRectGetHeight(self.imageView.frame) / 2.0f);
 
 			// apply device scale to angular velocity
-			angularVelocity *= deviceScale;
+			angularVelocity *= deviceAngularScale;
 			// adjust angular velocity based on distance from center, force applied farther towards the edges gets more spin
 			angularVelocity *= ((xRatioFromCenter + yRatioFromCetner) / 2.0f);
 			
@@ -580,7 +598,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 			
 			// delay for dismissing is based on push velocity also
 			CGFloat delay = __maximumDismissDelay - (pushVelocity / 10000.0f);
-			[self performSelector:@selector(dismissAfterPush) withObject:nil afterDelay:delay * __velocityFactor];
+			[self performSelector:@selector(dismissAfterPush) withObject:nil afterDelay:(delay * deviceDismissDelay) * __velocityFactor];
 		}
 		else {
 			[self returnToCenter];
