@@ -361,7 +361,12 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}
 	
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-		self.imageView.frame = targetFrame;
+		if (!CGRectIsEmpty(_startFrame)) {
+			self.imageView.frame = _startFrame;
+		} else {
+			self.imageView.frame = [self.view convertRect:self.fromView.frame fromView:nil];
+		}
+            
 		//self.imageView.alpha = 0.0f;
 		self.backgroundView.alpha = 0.0f;
 	} completion:^(BOOL finished) {
