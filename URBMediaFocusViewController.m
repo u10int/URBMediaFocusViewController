@@ -182,14 +182,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	[self showImage:image fromView:fromView inViewController:nil];
 }
 
-- (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView {
-	[self showImageFromURL:url fromView:fromView inViewController:nil];
-}
-
-- (void)showImageFromURL:(NSURL *)url fromRect:(CGRect)fromRect {
-	
-}
-
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
 	self.fromView = fromView;
 	self.targetViewController = parentViewController;
@@ -306,9 +298,20 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}];
 }
 
+- (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView {
+	[self showImageFromURL:url fromView:fromView inViewController:nil];
+}
+
 - (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
 	self.fromView = fromView;
 	self.targetViewController = parentViewController;
+	
+	CGRect fromRect = [self.view convertRect:fromView.frame fromView:nil];
+	[self showImageFromURL:url fromRect:fromRect];
+}
+
+- (void)showImageFromURL:(NSURL *)url fromRect:(CGRect)fromRect {
+	self.fromRect = fromRect;
 	
 	NSURLRequest *request = [NSURLRequest requestWithURL:url];
 	NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
@@ -321,8 +324,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	if (!self.loadingView) {
 		self.loadingView = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(0, 0, 30.0, 30.0)];
 	}
-	[fromView addSubview:self.loadingView];
-	self.loadingView.center = CGPointMake(CGRectGetWidth(fromView.frame) / 2.0, CGRectGetHeight(fromView.frame) / 2.0);
+	if (self.fromView) {
+		[self.fromView addSubview:self.loadingView];
+		self.loadingView.center = CGPointMake(CGRectGetWidth(self.fromView.frame) / 2.0, CGRectGetHeight(self.fromView.frame) / 2.0);
+	}
 	
 	[self.loadingView startAnimating];
 	[self.urlConnection start];
@@ -686,7 +691,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	if (self.urlData) {
 		UIImage *image = [UIImage imageWithData:self.urlData];
-		[self showImage:image fromView:self.fromView inViewController:self.targetViewController];
+		[self showImage:image fromRect:self.fromRect];
 		
 		if ([self.delegate respondsToSelector:@selector(mediaFocusViewController:didFinishLoadingImage:)]) {
 			[self.delegate mediaFocusViewController:self didFinishLoadingImage:image];
