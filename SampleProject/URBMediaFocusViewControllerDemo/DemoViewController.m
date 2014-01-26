@@ -29,7 +29,8 @@
 	
 	self.mediaFocusController = [[URBMediaFocusViewController alloc] init];
 	self.mediaFocusController.delegate = self;
-	self.mediaFocusController.shouldDismissOnTap = YES; // uncomment if you wish to support dismissing view on a single tap
+	//self.mediaFocusController.shouldDismissOnTap = NO; // uncomment if you wish to disable dismissing the view on a single tap outside image bounds
+	//self.mediaFocusController.shouldDismissOnImageTap = YES;	// uncomment if you wish to support dismissing view on a single tap on the image itself
 	
 	self.thumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(30.0, 50.0, 100.0, 100.0)];
 	self.thumbnailView.backgroundColor = [UIColor darkGrayColor];
