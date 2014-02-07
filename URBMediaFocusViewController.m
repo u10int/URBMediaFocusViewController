@@ -173,6 +173,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)cancelURLConnectionIfAny {
+    if (self.loadingView) {
+        [self.loadingView stopAnimating];
+        if (self.loadingView.superview) [self.loadingView removeFromSuperview];
+    }
     if (self.urlConnection) [self.urlConnection cancel];
 };
 
