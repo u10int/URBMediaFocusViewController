@@ -675,10 +675,12 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
 	CGFloat transformScale = self.imageView.transform.a;
-	BOOL shouldRecognize = transformScale > _minScale;
+    
+    // ensure that gestures are not recognized beyond min scale
+    BOOL shouldRecognize = transformScale > _minScale;
 	
-	// make sure tap and double tap gestures aren't recognized simultaneously
-	shouldRecognize = !([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]] && [otherGestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]);
+	// and make sure tap and double tap gestures aren't recognized simultaneously
+	shouldRecognize = shouldRecognize && !([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]] && [otherGestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]);
 	
 	return shouldRecognize;
 }
