@@ -61,6 +61,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 @property (nonatomic, strong) NSMutableData *urlData;
 
 @property (nonatomic, strong) UIView *blurredSnapshotView;
+@property (nonatomic, strong) UIView *snapshotsContainerView;
 @property (nonatomic, strong) UIView *snapshotView;
 @property (nonatomic, strong) UIView *targetViewControllerHidingView;
 
@@ -99,7 +100,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)setup {
 	self.backgroundView = [[UIView alloc] initWithFrame:self.view.bounds];
-	self.backgroundView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.6f];
+	self.backgroundView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.16f];
 	self.backgroundView.alpha = 0.0f;
 	self.backgroundView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
 	[self.view addSubview:self.backgroundView];
@@ -191,13 +192,14 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)layoutBackground {
     if (self.targetViewController) {
-        CGPoint center = CGPointMake(CGRectGetMidX(self.snapshotView.superview.bounds), CGRectGetMidY(self.snapshotView.superview.bounds));
-        CGRect boundsForSnapShoot = self.snapshotView.superview.bounds;
-        [self.snapshotView setBounds:boundsForSnapShoot];
-        [self.blurredSnapshotView setBounds:boundsForSnapShoot];
-        [self.snapshotView setCenter:center];
-        [self.blurredSnapshotView setCenter:center];
+        CGPoint center = CGPointMake(CGRectGetMidX(self.snapshotsContainerView.superview.bounds), CGRectGetMidY(self.snapshotsContainerView.superview.bounds));
+        CGRect boundsForSnapShoot = self.snapshotsContainerView.superview.bounds;
+        CGFloat blurInset = [self.snapshotView frame].origin.y;
+        boundsForSnapShoot.size.width += blurInset * 2.0;
+        boundsForSnapShoot.size.height += blurInset * 2.0;
         
+        [self.snapshotsContainerView setBounds:boundsForSnapShoot];
+        [self.snapshotsContainerView setCenter:center];
     }
 }
 
@@ -274,14 +276,13 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		[self.targetViewController addChildViewController:self];
 		[self.targetViewController.view addSubview:self.view];
 		
-		if (self.snapshotView) {
+		if (self.snapshotsContainerView) {
             self.targetViewControllerHidingView = [[UIView alloc] initWithFrame:self.targetViewController.view.bounds];
             [self.targetViewControllerHidingView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
             [self.targetViewControllerHidingView setBackgroundColor:[UIColor blackColor]];
             [self.targetViewController.view insertSubview:self.targetViewControllerHidingView belowSubview:self.view];
 
-			[self.targetViewController.view insertSubview:self.snapshotView aboveSubview:self.targetViewControllerHidingView];
-			[self.targetViewController.view insertSubview:self.blurredSnapshotView aboveSubview:self.snapshotView];
+			[self.targetViewController.view insertSubview:self.snapshotsContainerView aboveSubview:self.targetViewControllerHidingView];
             [self layoutBackground];
 		}
 	}
@@ -293,9 +294,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		}
 		[self.keyWindow addSubview:self.view];
 		
-		if (self.snapshotView) {
-			[self.keyWindow insertSubview:self.snapshotView belowSubview:self.view];
-			[self.keyWindow insertSubview:self.blurredSnapshotView aboveSubview:self.snapshotView];
+		if (self.snapshotsContainerView) {
+			[self.keyWindow insertSubview:self.snapshotsContainerView belowSubview:self.view];
 		}
 	}
 	
@@ -306,8 +306,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		
 		if (self.snapshotView) {
 			self.blurredSnapshotView.alpha = 1.0f;
-			self.blurredSnapshotView.transform = CGAffineTransformScale(CGAffineTransformIdentity, __backgroundScale, __backgroundScale);
-			self.snapshotView.transform = CGAffineTransformScale(CGAffineTransformIdentity, __backgroundScale, __backgroundScale);
+            self.snapshotView.alpha = 0.0;
+			self.snapshotsContainerView.transform = CGAffineTransformScale(CGAffineTransformIdentity, __backgroundScale, __backgroundScale);
 		}
 		
 	} completion:^(BOOL finished) {
@@ -440,20 +440,21 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	// container view for window
 	// inset container view so we can blur the edges, but we also need to scale up so when __backgroundScale is applied, everything lines up
 	CGRect containerFrame = sourceView.bounds;
-	UIView *containerView = [[UIView alloc] initWithFrame:containerFrame];
+    CGFloat blurInset = 3 * __blurRadius;
+	UIView *containerView = [[UIView alloc] initWithFrame:CGRectInset(containerFrame, -blurInset, -blurInset)];
 	containerView.backgroundColor = [UIColor blackColor];
 	
 	// add snapshot of window to the container
     
 	UIImage *windowSnapshot = [sourceView snapshotImageWithScale:[UIScreen mainScreen].scale];
 	UIImageView *windowSnapshotView = [[UIImageView alloc] initWithImage:windowSnapshot];
-	windowSnapshotView.frame = CGRectInset(containerView.bounds, __blurRadius, __blurRadius);
+    windowSnapshotView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+	windowSnapshotView.frame = CGRectInset(containerView.bounds, blurInset, blurInset);
     windowSnapshotView.backgroundColor = [UIColor blackColor];
 
 	[containerView addSubview:windowSnapshotView];
-	containerView.center = sourceView.center;
 	
-	UIImageView *snapshotView;
+	UIImageView *snapshotView = nil;
 	// only add blurred view if radius is above 0
 	if (self.shouldBlurBackground && __blurRadius) {
 		UIImage *snapshot = [containerView snapshotImageWithScale:[UIScreen mainScreen].scale];
@@ -462,14 +463,26 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 							   saturationDeltaFactor:__blurSaturationDeltaMask
 										   maskImage:nil];
 		snapshotView = [[UIImageView alloc] initWithImage:snapshot];
-		snapshotView.center = containerView.center;
+        snapshotView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
 		snapshotView.alpha = 0.0f;
 		snapshotView.userInteractionEnabled = NO;
+        snapshotView.frame = containerView.bounds;
+        [containerView addSubview:snapshotView];
         
 	}
-	
-	self.snapshotView = containerView;
+    
+	self.snapshotsContainerView = containerView;
+	self.snapshotView = windowSnapshotView;
 	self.blurredSnapshotView = snapshotView;
+    
+#if DEBUG
+    [self.snapshotsContainerView.layer setBorderColor:[[UIColor yellowColor] CGColor]];
+    [self.snapshotsContainerView.layer setBorderWidth:1];
+    [self.snapshotView.layer setBorderColor:[[UIColor greenColor] CGColor]];
+    [self.snapshotView.layer setBorderWidth:1];
+    [self.blurredSnapshotView.layer setBorderColor:[[UIColor colorWithRed:0 green:0 blue:1 alpha:0.5] CGColor]];
+    [self.blurredSnapshotView.layer setBorderWidth:1];
+#endif
 }
 
 /**
@@ -510,11 +523,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.blurredSnapshotView.alpha = 0.0f;
-		self.blurredSnapshotView.transform = CGAffineTransformIdentity;
-		self.snapshotView.transform = CGAffineTransformIdentity;
+		self.snapshotView.alpha = 1.0f;
+		self.snapshotsContainerView.transform = CGAffineTransformIdentity;
 	} completion:^(BOOL finished) {
-		[self.snapshotView removeFromSuperview];
-		[self.blurredSnapshotView removeFromSuperview];
+		[self.snapshotsContainerView removeFromSuperview];
         [self.targetViewControllerHidingView removeFromSuperview];
 		self.snapshotView = nil;
 		self.blurredSnapshotView = nil;
