@@ -310,7 +310,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	[self view]; // make sure view has loaded first
     if (self.targetViewController) {
         // ensure that view has same bounds as target view controller
-        [self.view setFrame:self.targetViewController.view.bounds];
+        self.view.frame = [self keyView].bounds;
     }
 	_currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
 	self.fromRect = fromRect;
