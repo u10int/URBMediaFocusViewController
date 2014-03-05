@@ -188,7 +188,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     
-	self.view.frame = self.targetViewController ? self.targetViewController.view.bounds : self.keyWindow.bounds;
+	self.view.frame = [self keyView].bounds;
     
     [self updateScrollViewScalesAndImagePosition];
     [self layoutBackground];
@@ -302,7 +302,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
     }
     
     
-    UIView *targetView = self.targetViewController.view?:self.keyWindow;
+    UIView *targetView = [self keyView];
     
 	if (self.targetViewController) {
 		[self willMoveToParentViewController:self.targetViewController];
@@ -465,8 +465,12 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	return [UIApplication sharedApplication].keyWindow;
 }
 
+- (UIView *)keyView {
+    return self.targetViewController.view ?: self.keyWindow;
+}
+
 - (void)createViewsForParallax {
-    UIView *sourceView = self.targetViewController.view ?: self.keyWindow;
+    UIView *sourceView = [self keyView];
     
 	// container view for window
 	// inset container view so we can blur the edges, but we also need to scale up so when __backgroundScale is applied, everything lines up
@@ -522,7 +526,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
     [self.snapshotsContainerView setHidden:YES];
     [self.backgroundView setHidden:YES];
 
-    UIView *sourceView = self.targetViewController.view ?: self.keyWindow;
+    UIView *sourceView = [self keyView];
     UIImage *windowSnapshot = [sourceView snapshotImageWithScale:[UIScreen mainScreen].scale];
     
     [self.view setHidden:NO];
