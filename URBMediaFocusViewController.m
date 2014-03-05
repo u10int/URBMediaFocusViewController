@@ -503,10 +503,26 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)centerScrollViewContents {
-	CGSize contentSize = self.scrollView.contentSize;
-	CGFloat offsetX = (CGRectGetWidth(self.scrollView.frame) - contentSize.width) / 2.0f;
-	CGFloat offsetY = (CGRectGetHeight(self.scrollView.frame) - contentSize.height) / 2.0f;
-	self.imageView.center = CGPointMake(self.scrollView.contentSize.width / 2.0f + offsetX, self.scrollView.contentSize.height / 2.0f + offsetY);
+    // from apple photoScroller example
+    // center the zoom view as it becomes smaller than the size of the screen
+    CGSize boundsSize = self.scrollView.bounds.size;
+    CGRect frameToCenter = self.imageView.frame;
+    
+    // center horizontally
+    if (frameToCenter.size.width < boundsSize.width) {
+        frameToCenter.origin.x = (boundsSize.width - frameToCenter.size.width) / 2;
+    } else {
+        frameToCenter.origin.x = 0;
+    }
+    
+    // center vertically
+    if (frameToCenter.size.height < boundsSize.height) {
+        frameToCenter.origin.y = (boundsSize.height - frameToCenter.size.height) / 2;
+    } else {
+        frameToCenter.origin.y = 0;
+    }
+    
+    self.imageView.frame = frameToCenter;
 }
 
 - (void)returnToCenter {
