@@ -104,7 +104,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)setup {
 	self.backgroundView = [[UIView alloc] initWithFrame:self.view.bounds];
-	self.backgroundView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.16f];
+	self.backgroundView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.6f];
 	self.backgroundView.alpha = 0.0f;
 	self.backgroundView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
 	[self.view addSubview:self.backgroundView];
@@ -124,13 +124,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.imageView.alpha = 0.0f;
 	self.imageView.userInteractionEnabled = YES;
 	[self.scrollView addSubview:self.imageView];
-    
-#if defined(DEBUG) && defined(URBMediaFocusViewControllerShowBorders)
-    [self.scrollView.layer setBorderColor:[[UIColor colorWithRed:1.0 green:0. blue:0.0 alpha:0.5] CGColor]];
-    [self.scrollView.layer setBorderWidth:1];
-    [self.imageView.layer setBorderColor:[[UIColor greenColor] CGColor]];
-    [self.imageView.layer setBorderWidth:1];
-#endif
     
 	/* setup gesture recognizers */
 	// double tap gesture to return scaled image back to center for easier dismissal
@@ -183,6 +176,13 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		[self.photoTapRecognizer requireGestureRecognizerToFail:self.doubleTapRecognizer];
 		[self.imageView addGestureRecognizer:self.photoTapRecognizer];
 	}
+    
+#if defined(DEBUG) && defined(URBMediaFocusViewControllerShowBorders)
+    [self.scrollView.layer setBorderColor:[[UIColor colorWithRed:1.0 green:0. blue:0.0 alpha:0.5] CGColor]];
+    [self.scrollView.layer setBorderWidth:1];
+    [self.imageView.layer setBorderColor:[[UIColor greenColor] CGColor]];
+    [self.imageView.layer setBorderWidth:1];
+#endif
 }
 
 - (void)viewDidLayoutSubviews {
