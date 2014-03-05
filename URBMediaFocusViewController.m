@@ -28,6 +28,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (UIImage *)snapshotImageWithScale:(CGFloat)scale;
 @end
 
+
+/// Uncomment the following line to display borders around some views for easier debugging
+/// #define URBMediaFocusViewControllerShowBorders
+
 /**
  Pulled from Apple's UIImage+ImageEffects category, but renamed to avoid potential selector name conflicts.
  */
@@ -121,7 +125,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.imageView.userInteractionEnabled = YES;
 	[self.scrollView addSubview:self.imageView];
     
-#if DEBUG
+#if defined(DEBUG) && defined(URBMediaFocusViewControllerShowBorders)
     [self.scrollView.layer setBorderColor:[[UIColor colorWithRed:1.0 green:0. blue:0.0 alpha:0.5] CGColor]];
     [self.scrollView.layer setBorderWidth:1];
     [self.imageView.layer setBorderColor:[[UIColor greenColor] CGColor]];
@@ -475,7 +479,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.snapshotView = windowSnapshotView;
 	self.blurredSnapshotView = snapshotView;
     
-#if DEBUG
+#if defined(DEBUG) && defined(URBMediaFocusViewControllerShowBorders)
     [self.snapshotsContainerView.layer setBorderColor:[[UIColor yellowColor] CGColor]];
     [self.snapshotsContainerView.layer setBorderWidth:1];
     [self.snapshotView.layer setBorderColor:[[UIColor greenColor] CGColor]];
