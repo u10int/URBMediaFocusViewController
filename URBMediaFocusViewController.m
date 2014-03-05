@@ -302,7 +302,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.fromView = fromView;
 	self.targetViewController = parentViewController;
 	
-	CGRect fromRect = [self.view convertRect:fromView.frame fromView:nil];
+	CGRect fromRect = (self.fromView) ? [self.fromView convertRect:self.fromView.bounds toView:self.targetViewController.view] : CGRectZero;
 	[self showImage:image fromRect:fromRect];
 }
 
@@ -318,7 +318,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.imageView.transform = CGAffineTransformIdentity;
 	self.imageView.image = image;
 	self.imageView.alpha = 0.2;
-	
+    
 	// create snapshot of background if parallax is enabled
 	if (self.parallaxEnabled) {
 		[self createViewsForParallax];
@@ -333,7 +333,13 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 	// set initial frame of image view to match that of the presenting image
 	//self.imageView.frame = CGRectMake(midpoint.x - image.size.width / 2.0, midpoint.y - image.size.height / 2.0, image.size.width, image.size.height);
-	self.imageView.frame = [self.view convertRect:fromRect fromView:nil];
+	if (self.targetViewController) {
+        // when using the target view controller, both view controllers will have same geometry:
+        self.imageView.bounds = CGRectMake(0, 0, CGRectGetWidth(fromRect), CGRectGetHeight(fromRect));
+        self.imageView.center = CGPointMake(CGRectGetMidX(fromRect), CGRectGetMidY(fromRect));
+    } else {
+        self.imageView.frame = [self.view convertRect:fromRect fromView:nil];
+    }
     
 	// rotate imageView based on current device orientation
 	[self reposition];
@@ -385,7 +391,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
     
     [self layoutBackground];
 	
-	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState animations:^{
 		self.backgroundView.alpha = 1.0f;
 		self.imageView.alpha = 1.0f;
         [self updateScrollViewScalesAndImagePosition];
