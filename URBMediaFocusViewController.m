@@ -111,14 +111,23 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.scrollView.showsHorizontalScrollIndicator = NO;
 	self.scrollView.showsVerticalScrollIndicator = NO;
 	self.scrollView.scrollEnabled = NO;
+    self.scrollView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
 	[self.view addSubview:self.scrollView];
 	
 	self.imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 50.0, 50.0)];
 	self.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    self.imageView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin;
 	self.imageView.alpha = 0.0f;
 	self.imageView.userInteractionEnabled = YES;
 	[self.scrollView addSubview:self.imageView];
-	
+    
+#if DEBUG
+    [self.scrollView.layer setBorderColor:[[UIColor redColor] CGColor]];
+    [self.scrollView.layer setBorderWidth:1];
+    [self.imageView.layer setBorderColor:[[UIColor greenColor] CGColor]];
+    [self.imageView.layer setBorderWidth:1];
+#endif
+    
 	/* setup gesture recognizers */
 	// double tap gesture to return scaled image back to center for easier dismissal
 	self.doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTapGesture:)];
@@ -172,6 +181,11 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}
 }
 
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    [self centerScrollViewContents];
+}
+
 - (void)cancelURLConnectionIfAny {
     if (self.loadingView) {
         [self.loadingView stopAnimating];
@@ -196,6 +210,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)showImage:(UIImage *)image fromRect:(CGRect)fromRect {
 	[self view]; // make sure view has loaded first
+    if (self.targetViewController) {
+        // ensure that view has same bounds as target view controller
+        [self.view setFrame:self.targetViewController.view.bounds];
+    }
 	_currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
 	self.fromRect = fromRect;
 	
@@ -712,6 +730,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 #pragma mark - Orientation Helpers
 
 - (void)deviceOrientationChanged:(NSNotification *)notification {
+    if (self.targetViewController) {
+        return;
+    }
 	NSLog(@"device orientation changed");
 	UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
 	if (_currentOrientation != orientation) {
@@ -738,6 +759,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)reposition {
+    if (self.targetViewController) {
+        return;
+    }
 	CGAffineTransform baseTransform = [self transformForOrientation:_currentOrientation];
 	
 	// determine if the rotation we're about to undergo is 90 or 180 degrees

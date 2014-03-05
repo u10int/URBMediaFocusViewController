@@ -96,13 +96,13 @@
 	//[self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView inView:self.view];
 	
 	if (gestureRecognizer.view == self.localThumbnailView) {
-		[self.mediaFocusController showImage:[UIImage imageNamed:@"raceforfood.jpg"] fromView:gestureRecognizer.view];
+		[self.mediaFocusController showImage:[UIImage imageNamed:@"raceforfood.jpg"] fromView:gestureRecognizer.view inViewController:self];
 	}
 	else if (gestureRecognizer.view == self.panoramaThumbnailView) {
-		[self.mediaFocusController showImage:[UIImage imageNamed:@"panorama.jpg"] fromView:gestureRecognizer.view];
+		[self.mediaFocusController showImage:[UIImage imageNamed:@"panorama.jpg"] fromView:gestureRecognizer.view inViewController:self];
 	}
 	else if (gestureRecognizer.view == self.verticalPanoramaThumbnailView) {
-		[self.mediaFocusController showImage:[UIImage imageNamed:@"panorama_vert.jpg"] fromView:gestureRecognizer.view];
+		[self.mediaFocusController showImage:[UIImage imageNamed:@"panorama_vert.jpg"] fromView:gestureRecognizer.view inViewController:self];
 	}
 	else {
 		NSURL *url;
@@ -115,7 +115,7 @@
 		else {
 			url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
 		}
-		[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view];
+		[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inViewController:self];
 		
 		// alternative method adding the focus view to this controller's view
 		//[self.mediaFocusController showImageFromURL:url fromView:gestureRecognizer.view inViewController:self];
