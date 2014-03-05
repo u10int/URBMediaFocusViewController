@@ -64,9 +64,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 @property (nonatomic, strong) NSURLConnection *urlConnection;
 @property (nonatomic, strong) NSMutableData *urlData;
 
-@property (nonatomic, strong) UIView *blurredSnapshotView;
+@property (nonatomic, strong) UIImageView *blurredSnapshotView;
 @property (nonatomic, strong) UIView *snapshotsContainerView;
-@property (nonatomic, strong) UIView *snapshotView;
+@property (nonatomic, strong) UIImageView *snapshotView;
 @property (nonatomic, strong) UIView *originalTargetContentHidingView;
 
 @end
@@ -194,13 +194,32 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
     [self layoutBackground];
 }
 
+- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
+    [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    // we hide the snapshot during rotation
+    // because the originalTargetContentHidingView is still visible the image will rotate on black
+    [self.snapshotsContainerView setAlpha:0.0];
+}
+
+- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
+    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+    
+    // after updating the snapshot we animate it back in
+    [self updateSnapshotContents];
+    
+    [UIView animateWithDuration:0.25
+                     animations:^{
+                         [self.snapshotsContainerView setAlpha:1.0];
+                     }];
+}
+
 - (void)layoutBackground {
     // we enlarge the hiding view beyond the beyond its super view to cover it during rotations
     [self.originalTargetContentHidingView setFrame:CGRectInset(self.originalTargetContentHidingView.superview.bounds, -100, -100)];
     
     if (self.targetViewController) {
-        CGPoint center = CGPointMake(CGRectGetMidX(self.snapshotsContainerView.superview.bounds), CGRectGetMidY(self.snapshotsContainerView.superview.bounds));
-        CGRect boundsForSnapShoot = self.snapshotsContainerView.superview.bounds;
+        CGPoint center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
+        CGRect boundsForSnapShoot = self.view.bounds;
         CGFloat blurInset = [self.snapshotView frame].origin.y;
         boundsForSnapShoot.size.width += blurInset * 2.0;
         boundsForSnapShoot.size.height += blurInset * 2.0;
@@ -457,35 +476,28 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	containerView.backgroundColor = [UIColor blackColor];
 	
 	// add snapshot of window to the container
-    
-	UIImage *windowSnapshot = [sourceView snapshotImageWithScale:[UIScreen mainScreen].scale];
-	UIImageView *windowSnapshotView = [[UIImageView alloc] initWithImage:windowSnapshot];
+    UIImageView *windowSnapshotView = [[UIImageView alloc] initWithImage:nil];
     windowSnapshotView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
 	windowSnapshotView.frame = CGRectInset(containerView.bounds, blurInset, blurInset);
     windowSnapshotView.backgroundColor = [UIColor blackColor];
-
+    
+	self.snapshotView = windowSnapshotView;
 	[containerView addSubview:windowSnapshotView];
 	
-	UIImageView *snapshotView = nil;
+    
 	// only add blurred view if radius is above 0
 	if (self.shouldBlurBackground && __blurRadius) {
-		UIImage *snapshot = [containerView snapshotImageWithScale:[UIScreen mainScreen].scale];
-		snapshot = [snapshot URB_applyBlurWithRadius:__blurRadius
-										   tintColor:[UIColor colorWithWhite:0.0f alpha:__blurTintColorAlpha]
-							   saturationDeltaFactor:__blurSaturationDeltaMask
-										   maskImage:nil];
-		snapshotView = [[UIImageView alloc] initWithImage:snapshot];
+		UIImageView *snapshotView = [[UIImageView alloc] initWithImage:nil];
         snapshotView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
 		snapshotView.alpha = 0.0f;
 		snapshotView.userInteractionEnabled = NO;
         snapshotView.frame = containerView.bounds;
+        self.blurredSnapshotView = snapshotView;
         [containerView addSubview:snapshotView];
-        
 	}
     
 	self.snapshotsContainerView = containerView;
-	self.snapshotView = windowSnapshotView;
-	self.blurredSnapshotView = snapshotView;
+    [self updateSnapshotContents];
     
 #if defined(DEBUG) && defined(URBMediaFocusViewControllerShowBorders)
     [self.snapshotsContainerView.layer setBorderColor:[[UIColor yellowColor] CGColor]];
@@ -496,6 +508,60 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
     [self.blurredSnapshotView.layer setBorderWidth:1];
 #endif
 }
+
+- (void)updateSnapshotContents {
+    if (!self.snapshotsContainerView) {
+        return;
+    }
+    [self layoutBackground];
+    
+    // because we might have polluted the view of our target
+    // we need to hide everything we have added in order to take correct screenshots
+    [self.view setHidden:YES];
+    [self.originalTargetContentHidingView setHidden:YES];
+    [self.snapshotsContainerView setHidden:YES];
+    [self.backgroundView setHidden:YES];
+
+    UIView *sourceView = self.targetViewController.view ?: self.keyWindow;
+    UIImage *windowSnapshot = [sourceView snapshotImageWithScale:[UIScreen mainScreen].scale];
+    
+    [self.view setHidden:NO];
+    [self.originalTargetContentHidingView setHidden:NO];
+    [self.snapshotsContainerView setHidden:NO];
+    [self.backgroundView setHidden:NO];
+    
+    [self.snapshotView setImage:windowSnapshot];
+    
+    
+    if (self.blurredSnapshotView) {
+        // create the blurred snapshot
+        
+        // the previous blurred snapshot is in the way for snapshotting the snapshot
+        [self.blurredSnapshotView setHidden:YES];
+        
+        // we might have hidden the unblurred snapshot: bring it back
+        CGFloat alphaBefore = [self.snapshotView alpha];
+        CGFloat snapShotContainerAlpha = self.snapshotsContainerView.alpha;
+        [self.snapshotView setAlpha:1.0];
+        [self.snapshotsContainerView setAlpha:1.0];
+        
+        UIImage *snapshot = [self.snapshotsContainerView snapshotImageWithScale:[UIScreen mainScreen].scale];
+        snapshot = [snapshot URB_applyBlurWithRadius:__blurRadius
+                                           tintColor:[UIColor colorWithWhite:0.0f alpha:__blurTintColorAlpha]
+                               saturationDeltaFactor:__blurSaturationDeltaMask
+                                           maskImage:nil];
+        
+        [self.blurredSnapshotView setImage:snapshot];
+        
+        // reset visibilty states
+        [self.blurredSnapshotView setHidden:NO];
+        [self.snapshotView setAlpha:alphaBefore];
+        [self.snapshotsContainerView setAlpha:snapShotContainerAlpha];
+    }
+    
+    
+}
+
 
 /**
  *	When adding UIDynamics to a view, it resets `zoomScale` on UIScrollView back to 1.0, which is an issue when applying dynamics
