@@ -67,7 +67,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 @property (nonatomic, strong) UIView *blurredSnapshotView;
 @property (nonatomic, strong) UIView *snapshotsContainerView;
 @property (nonatomic, strong) UIView *snapshotView;
-@property (nonatomic, strong) UIView *targetViewControllerHidingView;
+@property (nonatomic, strong) UIView *originalTargetContentHidingView;
 
 @end
 
@@ -195,6 +195,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)layoutBackground {
+    // we enlarge the hiding view beyond the beyond its super view to cover it during rotations
+    [self.originalTargetContentHidingView setFrame:CGRectInset(self.originalTargetContentHidingView.superview.bounds, -100, -100)];
+    
     if (self.targetViewController) {
         CGPoint center = CGPointMake(CGRectGetMidX(self.snapshotsContainerView.superview.bounds), CGRectGetMidY(self.snapshotsContainerView.superview.bounds));
         CGRect boundsForSnapShoot = self.snapshotsContainerView.superview.bounds;
@@ -270,7 +273,18 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
 	// register with the device that we want to know when the device orientation changes
 	[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-	
+    
+    if (self.snapshotsContainerView) {
+        self.originalTargetContentHidingView = [[UIView alloc] initWithFrame:CGRectZero];
+        [self.originalTargetContentHidingView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
+        [self.originalTargetContentHidingView setBackgroundColor:[UIColor blackColor]];
+    } else {
+        [self setOriginalTargetContentHidingView:nil];
+    }
+    
+    
+    UIView *targetView = self.targetViewController.view?:self.keyWindow;
+    
 	if (self.targetViewController) {
 		[self willMoveToParentViewController:self.targetViewController];
 		if ([UIView instancesRespondToSelector:@selector(setTintAdjustmentMode:)]) {
@@ -278,30 +292,24 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 			[self.targetViewController.view tintColorDidChange];
 		}
 		[self.targetViewController addChildViewController:self];
-		[self.targetViewController.view addSubview:self.view];
-		
-		if (self.snapshotsContainerView) {
-            self.targetViewControllerHidingView = [[UIView alloc] initWithFrame:self.targetViewController.view.bounds];
-            [self.targetViewControllerHidingView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
-            [self.targetViewControllerHidingView setBackgroundColor:[UIColor blackColor]];
-            [self.targetViewController.view insertSubview:self.targetViewControllerHidingView belowSubview:self.view];
-
-			[self.targetViewController.view insertSubview:self.snapshotsContainerView aboveSubview:self.targetViewControllerHidingView];
-            [self layoutBackground];
-		}
-	}
-	else {
+	} else {
 		// add this view to the main window if no targetViewController was set
 		if ([UIView instancesRespondToSelector:@selector(setTintAdjustmentMode:)]) {
 			self.keyWindow.tintAdjustmentMode = UIViewTintAdjustmentModeDimmed;
 			[self.keyWindow tintColorDidChange];
 		}
-		[self.keyWindow addSubview:self.view];
-		
-		if (self.snapshotsContainerView) {
-			[self.keyWindow insertSubview:self.snapshotsContainerView belowSubview:self.view];
-		}
 	}
+    
+    if (self.originalTargetContentHidingView) {
+        [targetView addSubview:self.originalTargetContentHidingView];
+    }
+    if (self.snapshotsContainerView) {
+        [targetView addSubview:self.snapshotsContainerView];
+    }
+    
+    [targetView addSubview:self.view];
+    
+    [self layoutBackground];
 	
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 1.0f;
@@ -547,10 +555,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		self.snapshotsContainerView.transform = CGAffineTransformIdentity;
 	} completion:^(BOOL finished) {
 		[self.snapshotsContainerView removeFromSuperview];
-        [self.targetViewControllerHidingView removeFromSuperview];
+        [self.originalTargetContentHidingView removeFromSuperview];
 		self.snapshotView = nil;
 		self.blurredSnapshotView = nil;
-        self.targetViewControllerHidingView = nil;
+        self.originalTargetContentHidingView = nil;
 	}];
 }
 
