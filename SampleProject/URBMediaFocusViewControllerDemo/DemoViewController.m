@@ -26,7 +26,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-	
+	[self.view setBackgroundColor:[UIColor whiteColor]];
+    
 	self.mediaFocusController = [[URBMediaFocusViewController alloc] init];
 	self.mediaFocusController.delegate = self;
 	//self.mediaFocusController.shouldDismissOnTap = NO; // uncomment if you wish to disable dismissing the view on a single tap outside image bounds
