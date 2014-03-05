@@ -438,42 +438,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.blurredSnapshotView = snapshotView;
 }
 
-- (void)adjustFrame {
-	CGRect imageFrame = self.imageView.frame;
-	
-	// snap x sides
-	if (CGRectGetWidth(imageFrame) > CGRectGetWidth(self.view.frame)) {
-		if (CGRectGetMinX(imageFrame) > 0) {
-			imageFrame.origin.x = 0;
-		}
-		else if (CGRectGetMaxX(imageFrame) < CGRectGetWidth(self.view.frame)) {
-			imageFrame.origin.x = CGRectGetWidth(self.view.frame) - CGRectGetWidth(imageFrame);
-		}
-	}
-	else if (self.imageView.center.x != CGRectGetMidX(self.view.frame)) {
-		imageFrame.origin.x = CGRectGetMidX(self.view.frame) - CGRectGetWidth(imageFrame) / 2.0f;
-	}
-	
-	// snap y sides
-	if (CGRectGetHeight(imageFrame) > CGRectGetHeight(self.view.frame)) {
-		if (CGRectGetMinY(imageFrame) > 0) {
-			imageFrame.origin.y = 0;
-		}
-		else if (CGRectGetMaxY(imageFrame) < CGRectGetHeight(self.view.frame)) {
-			imageFrame.origin.y = CGRectGetHeight(self.view.frame) - CGRectGetHeight(imageFrame);
-		}
-	}
-	else if (self.imageView.center.y != CGRectGetMidY(self.view.frame)) {
-		imageFrame.origin.y = CGRectGetMidY(self.view.frame) - CGRectGetHeight(imageFrame) / 2.0f;
-	}
-	
-	[UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-		self.imageView.frame = imageFrame;
-	} completion:^(BOOL finished) {
-		
-	}];
-}
-
 /**
  *	When adding UIDynamics to a view, it resets `zoomScale` on UIScrollView back to 1.0, which is an issue when applying dynamics
  *	to the imageView when scaled down. So we just scale the imageView.frame while dynamics are applied.
