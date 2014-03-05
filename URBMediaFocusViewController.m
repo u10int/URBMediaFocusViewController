@@ -185,6 +185,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 #endif
 }
 
+#pragma mark Layout
+
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     
@@ -193,6 +195,73 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
     [self updateScrollViewScalesAndImagePosition];
     [self layoutBackground];
 }
+
+- (void)updateScrollViewScalesAndImagePosition {
+    // update scrollView.contentSize to the size of the image
+    UIImage *image = self.imageView.image;
+	self.scrollView.contentSize = image.size;
+	CGFloat scaleWidth = CGRectGetWidth(self.scrollView.frame) / self.scrollView.contentSize.width;
+	CGFloat scaleHeight = CGRectGetHeight(self.scrollView.frame) / self.scrollView.contentSize.height;
+	CGFloat scale = MIN(scaleWidth, scaleHeight);
+    
+    self.scrollView.contentOffset = CGPointZero;
+    
+    if (scale < 1.0f) {
+        self.scrollView.minimumZoomScale = 1.0f;
+        self.scrollView.maximumZoomScale = 1.0f / scale;
+    } else {
+        self.scrollView.minimumZoomScale = 1.0f / scale;
+        self.scrollView.maximumZoomScale = 1.0f;
+    }
+    
+    self.scrollView.zoomScale = 1.0;
+	// image view's destination frame is the size of the image capped to the width/height of the target view
+	CGSize scaledImageSize = CGSizeMake(image.size.width * scale, image.size.height * scale);
+	self.imageView.bounds = CGRectMake(0,0, scaledImageSize.width, scaledImageSize.height);;
+    [self centerScrollViewContents];
+    _originalFrame = self.imageView.frame;
+}
+
+- (void)centerScrollViewContents {
+    // from apple photoScroller example
+    // center the zoom view as it becomes smaller than the size of the screen
+    CGSize boundsSize = self.scrollView.bounds.size;
+    CGRect frameToCenter = self.imageView.frame;
+    
+    // center horizontally
+    if (frameToCenter.size.width < boundsSize.width) {
+        frameToCenter.origin.x = (boundsSize.width - frameToCenter.size.width) / 2;
+    } else {
+        frameToCenter.origin.x = 0;
+    }
+    
+    // center vertically
+    if (frameToCenter.size.height < boundsSize.height) {
+        frameToCenter.origin.y = (boundsSize.height - frameToCenter.size.height) / 2;
+    } else {
+        frameToCenter.origin.y = 0;
+    }
+    
+    self.imageView.frame = frameToCenter;
+}
+
+- (void)layoutBackground {
+    // we enlarge the hiding view beyond the beyond its super view to cover it during rotations
+    [self.originalTargetContentHidingView setFrame:CGRectInset(self.originalTargetContentHidingView.superview.bounds, -100, -100)];
+    
+    if (self.targetViewController) {
+        CGPoint center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
+        CGRect boundsForSnapShoot = self.view.bounds;
+        CGFloat blurInset = [self.snapshotView frame].origin.y;
+        boundsForSnapShoot.size.width += blurInset * 2.0;
+        boundsForSnapShoot.size.height += blurInset * 2.0;
+        
+        [self.snapshotsContainerView setBounds:boundsForSnapShoot];
+        [self.snapshotsContainerView setCenter:center];
+    }
+}
+
+#pragma mark UIInterfaceOrientation / Rotation
 
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
@@ -213,21 +282,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
                      }];
 }
 
-- (void)layoutBackground {
-    // we enlarge the hiding view beyond the beyond its super view to cover it during rotations
-    [self.originalTargetContentHidingView setFrame:CGRectInset(self.originalTargetContentHidingView.superview.bounds, -100, -100)];
-    
-    if (self.targetViewController) {
-        CGPoint center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
-        CGRect boundsForSnapShoot = self.view.bounds;
-        CGFloat blurInset = [self.snapshotView frame].origin.y;
-        boundsForSnapShoot.size.width += blurInset * 2.0;
-        boundsForSnapShoot.size.height += blurInset * 2.0;
-        
-        [self.snapshotsContainerView setBounds:boundsForSnapShoot];
-        [self.snapshotsContainerView setCenter:center];
-    }
-}
+#pragma mark 
 
 - (void)cancelURLConnectionIfAny {
     if (self.loadingView) {
@@ -351,32 +406,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 			[self.delegate mediaFocusViewControllerDidAppear:self];
 		}
 	}];
-}
-
-- (void)updateScrollViewScalesAndImagePosition {
-    // update scrollView.contentSize to the size of the image
-    UIImage *image = self.imageView.image;
-	self.scrollView.contentSize = image.size;
-	CGFloat scaleWidth = CGRectGetWidth(self.scrollView.frame) / self.scrollView.contentSize.width;
-	CGFloat scaleHeight = CGRectGetHeight(self.scrollView.frame) / self.scrollView.contentSize.height;
-	CGFloat scale = MIN(scaleWidth, scaleHeight);
-    
-    self.scrollView.contentOffset = CGPointZero;
-    
-    if (scale < 1.0f) {
-        self.scrollView.minimumZoomScale = 1.0f;
-        self.scrollView.maximumZoomScale = 1.0f / scale;
-    } else {
-        self.scrollView.minimumZoomScale = 1.0f / scale;
-        self.scrollView.maximumZoomScale = 1.0f;
-    }
-    
-    self.scrollView.zoomScale = 1.0;
-	// image view's destination frame is the size of the image capped to the width/height of the target view
-	CGSize scaledImageSize = CGSizeMake(image.size.width * scale, image.size.height * scale);
-	self.imageView.bounds = CGRectMake(0,0, scaledImageSize.width, scaledImageSize.height);;
-    [self centerScrollViewContents];
-    _originalFrame = self.imageView.frame;
 }
 
 - (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView {
@@ -578,29 +607,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	imageFrame.size.width *= _lastZoomScale;
 	imageFrame.size.height *= _lastZoomScale;
 	self.imageView.bounds = imageFrame;
-}
-
-- (void)centerScrollViewContents {
-    // from apple photoScroller example
-    // center the zoom view as it becomes smaller than the size of the screen
-    CGSize boundsSize = self.scrollView.bounds.size;
-    CGRect frameToCenter = self.imageView.frame;
-    
-    // center horizontally
-    if (frameToCenter.size.width < boundsSize.width) {
-        frameToCenter.origin.x = (boundsSize.width - frameToCenter.size.width) / 2;
-    } else {
-        frameToCenter.origin.x = 0;
-    }
-    
-    // center vertically
-    if (frameToCenter.size.height < boundsSize.height) {
-        frameToCenter.origin.y = (boundsSize.height - frameToCenter.size.height) / 2;
-    } else {
-        frameToCenter.origin.y = 0;
-    }
-    
-    self.imageView.frame = frameToCenter;
 }
 
 - (void)returnToCenter {
@@ -810,6 +816,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	return shouldRecognize;
 }
+
 
 #pragma mark - NSURLConnectionDelegate
 
