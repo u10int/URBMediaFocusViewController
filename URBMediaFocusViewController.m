@@ -116,13 +116,13 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	self.imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 50.0, 50.0)];
 	self.imageView.contentMode = UIViewContentModeScaleAspectFit;
-    self.imageView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin;
+    self.imageView.autoresizingMask = UIViewAutoresizingNone;
 	self.imageView.alpha = 0.0f;
 	self.imageView.userInteractionEnabled = YES;
 	[self.scrollView addSubview:self.imageView];
     
 #if DEBUG
-    [self.scrollView.layer setBorderColor:[[UIColor redColor] CGColor]];
+    [self.scrollView.layer setBorderColor:[[UIColor colorWithRed:1.0 green:0. blue:0.0 alpha:0.5] CGColor]];
     [self.scrollView.layer setBorderWidth:1];
     [self.imageView.layer setBorderColor:[[UIColor greenColor] CGColor]];
     [self.imageView.layer setBorderWidth:1];
@@ -183,7 +183,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
-    [self centerScrollViewContents];
+    [self updateScrollViewScalesAndImagePosition];
 }
 
 - (void)cancelURLConnectionIfAny {
@@ -230,34 +230,15 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		_unhideStatusBarOnDismiss = ![UIApplication sharedApplication].statusBarHidden;
 		[[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 	}
-	
-	// update scrollView.contentSize to the size of the image
-	self.scrollView.contentSize = image.size;
-	CGFloat scaleWidth = CGRectGetWidth(self.scrollView.frame) / self.scrollView.contentSize.width;
-	CGFloat scaleHeight = CGRectGetHeight(self.scrollView.frame) / self.scrollView.contentSize.height;
-	CGFloat scale = MIN(scaleWidth, scaleHeight);
-	
-	// image view's destination frame is the size of the image capped to the width/height of the target view
-	CGPoint midpoint = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
-	CGSize scaledImageSize = CGSizeMake(image.size.width * scale, image.size.height * scale);
-	CGRect targetRect = CGRectMake(midpoint.x - scaledImageSize.width / 2.0, midpoint.y - scaledImageSize.height / 2.0, scaledImageSize.width, scaledImageSize.height);
-	self.imageView.frame = targetRect;
-	
+
+	[self updateScrollViewScalesAndImagePosition];
+
 	// set initial frame of image view to match that of the presenting image
 	//self.imageView.frame = CGRectMake(midpoint.x - image.size.width / 2.0, midpoint.y - image.size.height / 2.0, image.size.width, image.size.height);
 	self.imageView.frame = [self.view convertRect:fromRect fromView:nil];
-	_originalFrame = targetRect;
+    
 	// rotate imageView based on current device orientation
 	[self reposition];
-    
-	if (scale < 1.0f) {
-		self.scrollView.minimumZoomScale = 1.0f;
-		self.scrollView.maximumZoomScale = 1.0f / scale;
-	}
-	else {
-		self.scrollView.minimumZoomScale = 1.0f / scale;
-		self.scrollView.maximumZoomScale = 1.0f;
-	}
 	
 	_minScale = self.scrollView.minimumZoomScale;
 	_maxScale = self.scrollView.maximumZoomScale;
@@ -300,7 +281,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.backgroundView.alpha = 1.0f;
 		self.imageView.alpha = 1.0f;
-		self.imageView.frame = targetRect;
+        [self updateScrollViewScalesAndImagePosition];
 		
 		if (self.snapshotView) {
 			self.blurredSnapshotView.alpha = 1.0f;
@@ -318,6 +299,32 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 			[self.delegate mediaFocusViewControllerDidAppear:self];
 		}
 	}];
+}
+
+- (void)updateScrollViewScalesAndImagePosition {
+    // update scrollView.contentSize to the size of the image
+    UIImage *image = self.imageView.image;
+	self.scrollView.contentSize = image.size;
+	CGFloat scaleWidth = CGRectGetWidth(self.scrollView.frame) / self.scrollView.contentSize.width;
+	CGFloat scaleHeight = CGRectGetHeight(self.scrollView.frame) / self.scrollView.contentSize.height;
+	CGFloat scale = MIN(scaleWidth, scaleHeight);
+    
+    self.scrollView.contentOffset = CGPointZero;
+    
+    if (scale < 1.0f) {
+        self.scrollView.minimumZoomScale = 1.0f;
+        self.scrollView.maximumZoomScale = 1.0f / scale;
+    } else {
+        self.scrollView.minimumZoomScale = 1.0f / scale;
+        self.scrollView.maximumZoomScale = 1.0f;
+    }
+    
+    self.scrollView.zoomScale = 1.0;
+	// image view's destination frame is the size of the image capped to the width/height of the target view
+	CGSize scaledImageSize = CGSizeMake(image.size.width * scale, image.size.height * scale);
+	self.imageView.bounds = CGRectMake(0,0, scaledImageSize.width, scaledImageSize.height);;
+    [self centerScrollViewContents];
+    _originalFrame = self.imageView.frame;
 }
 
 - (void)showImageFromURL:(NSURL *)url fromView:(UIView *)fromView {
@@ -445,16 +452,16 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (void)scaleImageForDynamics {
 	_lastZoomScale = self.scrollView.zoomScale;
 	
-	CGRect imageFrame = self.imageView.frame;
+	CGRect imageFrame = self.imageView.bounds;
 	imageFrame.size.width *= _lastZoomScale;
 	imageFrame.size.height *= _lastZoomScale;
-	self.imageView.frame = imageFrame;
+	self.imageView.bounds = imageFrame;
 }
 
 - (void)centerScrollViewContents {
 	CGSize contentSize = self.scrollView.contentSize;
-	CGFloat offsetX = (CGRectGetWidth(self.scrollView.frame) > contentSize.width) ? (CGRectGetWidth(self.scrollView.frame) - contentSize.width) / 2.0f : 0.0f;
-	CGFloat offsetY = (CGRectGetHeight(self.scrollView.frame) > contentSize.height) ? (CGRectGetHeight(self.scrollView.frame) - contentSize.height) / 2.0f : 0.0f;
+	CGFloat offsetX = (CGRectGetWidth(self.scrollView.frame) - contentSize.width) / 2.0f;
+	CGFloat offsetY = (CGRectGetHeight(self.scrollView.frame) - contentSize.height) / 2.0f;
 	self.imageView.center = CGPointMake(self.scrollView.contentSize.width / 2.0f + offsetX, self.scrollView.contentSize.height / 2.0f + offsetY);
 }
 
@@ -650,7 +657,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		}
 		scrollView.scrollEnabled = YES;
 	}
-	[self centerScrollViewContents];
+    [self centerScrollViewContents];
 }
 
 #pragma mark - UIGestureRecognizerDelegate Methods
