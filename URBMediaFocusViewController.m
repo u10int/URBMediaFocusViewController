@@ -731,10 +731,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 #pragma mark - Orientation Helpers
 
 - (void)deviceOrientationChanged:(NSNotification *)notification {
-	NSLog(@"device orientation changed");
-	UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
-	if (_currentOrientation != orientation) {
-		_currentOrientation = orientation;
+	UIInterfaceOrientation deviceOrientation = (UIInterfaceOrientation)[UIDevice currentDevice].orientation;
+	if (_currentOrientation != deviceOrientation) {
+		_currentOrientation = deviceOrientation;
 		[self reposition];
 	}
 }
@@ -766,7 +765,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	CGFloat n1 = sqrtf(t1.a * t1.a + t1.c * t1.c);
 	CGFloat n2 = sqrtf(t2.a * t2.a + t2.c * t2.c);
 	CGFloat rotationDelta = acosf(dot / (n1 * n2));
-	BOOL isDoubleRotation = (rotationDelta > M_PI_2);
+	BOOL isDoubleRotation = (rotationDelta > 1.581);
 	
 	// use the system rotation duration
 	CGFloat duration = [UIApplication sharedApplication].statusBarOrientationAnimationDuration;
@@ -779,11 +778,11 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	// if we haven't laid out the subviews yet, we don't want to animate rotation and position transforms
 	if (_hasLaidOut) {
 		[UIView animateWithDuration:duration animations:^{
-			self.imageView.transform = CGAffineTransformConcat(self.imageView.transform, baseTransform);
+			self.imageView.transform = CGAffineTransformConcat(CGAffineTransformIdentity, baseTransform);
 		}];
 	}
 	else {
-		self.imageView.transform = CGAffineTransformConcat(self.imageView.transform, baseTransform);
+		self.imageView.transform = CGAffineTransformConcat(CGAffineTransformIdentity, baseTransform);
 	}
 }
 
