@@ -323,6 +323,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (void)showImageFromURL:(NSURL *)url fromRect:(CGRect)fromRect {
 	self.fromRect = fromRect;
 	
+	// cancel any outstanding requests if we have one
+	[self cancelURLConnectionIfAny];
+	
 	NSURLRequest *request = [NSURLRequest requestWithURL:url];
 	NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
 	self.urlConnection = connection;
