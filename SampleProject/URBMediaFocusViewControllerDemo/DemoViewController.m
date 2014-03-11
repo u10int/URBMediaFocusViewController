@@ -27,6 +27,13 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 	
+	if ([self respondsToSelector:@selector(edgesForExtendedLayout)]) {
+		self.edgesForExtendedLayout = UIRectEdgeNone;
+	}
+	if ([self respondsToSelector:@selector(extendedLayoutIncludesOpaqueBars)]) {
+		self.extendedLayoutIncludesOpaqueBars = YES;
+	}
+	
 	self.mediaFocusController = [[URBMediaFocusViewController alloc] init];
 	self.mediaFocusController.delegate = self;
 	//self.mediaFocusController.shouldDismissOnTap = NO; // uncomment if you wish to disable dismissing the view on a single tap outside image bounds

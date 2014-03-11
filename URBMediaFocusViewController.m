@@ -25,14 +25,14 @@ static const CGFloat __blurSaturationDeltaMask = 0.8f;
 static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint the background view
 
 @interface UIView (URBMediaFocusViewController)
-- (UIImage *)snapshotImageWithScale:(CGFloat)scale;
+- (UIImage *)urb_snapshotImageWithScale:(CGFloat)scale;
 @end
 
 /**
  Pulled from Apple's UIImage+ImageEffects category, but renamed to avoid potential selector name conflicts.
  */
 @interface UIImage (URBImageEffects)
-- (UIImage *)URB_applyBlurWithRadius:(CGFloat)blurRadius tintColor:(UIColor *)tintColor saturationDeltaFactor:(CGFloat)saturationDeltaFactor maskImage:(UIImage *)maskImage;
+- (UIImage *)urb_applyBlurWithRadius:(CGFloat)blurRadius tintColor:(UIColor *)tintColor saturationDeltaFactor:(CGFloat)saturationDeltaFactor maskImage:(UIImage *)maskImage;
 @end
 
 @interface URBMediaFocusViewController () <UIScrollViewDelegate>
@@ -188,9 +188,11 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
 	self.fromView = fromView;
-	self.targetViewController = parentViewController;
+	//self.targetViewController = parentViewController;
 	
-	CGRect fromRect = [self.view convertRect:fromView.frame fromView:nil];
+	CGRect fromRect = [self.view convertRect:fromView.frame fromView:parentViewController.view];
+	NSLog(@"self.view.frame=%@", NSStringFromCGRect(self.view.frame));
+	NSLog(@"fromRect=%@", NSStringFromCGRect(fromRect));
 	[self showImage:image fromRect:fromRect];
 }
 
@@ -211,6 +213,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		// NOTE: in iOS 7+, this only works if you set `UIViewControllerBasedStatusBarAppearance` to YES in your Info.plist
 		_unhideStatusBarOnDismiss = ![UIApplication sharedApplication].statusBarHidden;
 		[[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
+		
+		if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)]) {
+			[self setNeedsStatusBarAppearanceUpdate];
+		}
 	}
 	
 	// update scrollView.contentSize to the size of the image
@@ -371,6 +377,12 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	[UIView animateWithDuration:__animationDuration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
 		self.imageView.frame = targetFrame;
+		if (!CGRectIsEmpty(self.fromRect)) {
+			self.imageView.frame = self.fromRect;
+		}
+		else {
+			self.imageView.frame = [self.view convertRect:self.fromView.frame fromView:nil];
+		}
 		//self.imageView.alpha = 0.0f;
 		self.backgroundView.alpha = 0.0f;
 	} completion:^(BOOL finished) {
@@ -396,7 +408,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	containerView.backgroundColor = [UIColor blackColor];
 	
 	// add snapshot of window to the container
-	UIImage *windowSnapshot = [self.keyWindow snapshotImageWithScale:[UIScreen mainScreen].scale];
+	UIImage *windowSnapshot = [self.keyWindow urb_snapshotImageWithScale:[UIScreen mainScreen].scale];
 	UIImageView *windowSnapshotView = [[UIImageView alloc] initWithImage:windowSnapshot];
 	windowSnapshotView.center = containerView.center;
 	[containerView addSubview:windowSnapshotView];
@@ -405,8 +417,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	UIImageView *snapshotView;
 	// only add blurred view if radius is above 0
 	if (self.shouldBlurBackground && __blurRadius) {
-		UIImage *snapshot = [containerView snapshotImageWithScale:[UIScreen mainScreen].scale];
-		snapshot = [snapshot URB_applyBlurWithRadius:__blurRadius
+		UIImage *snapshot = [containerView urb_snapshotImageWithScale:[UIScreen mainScreen].scale];
+		snapshot = [snapshot urb_applyBlurWithRadius:__blurRadius
 										   tintColor:[UIColor colorWithWhite:0.0f alpha:__blurTintColorAlpha]
 							   saturationDeltaFactor:__blurSaturationDeltaMask
 										   maskImage:nil];
@@ -531,6 +543,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	if ([self.delegate respondsToSelector:@selector(mediaFocusViewControllerDidDisappear:)]) {
 		[self.delegate mediaFocusViewControllerDidDisappear:self];
+	}
+	
+	if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)]) {
+		[self setNeedsStatusBarAppearanceUpdate];
 	}
 }
 
@@ -773,7 +789,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 @implementation UIView (URBMediaFocusViewController)
 
-- (UIImage *)snapshotImageWithScale:(CGFloat)scale {
+- (UIImage *)urb_snapshotImageWithScale:(CGFloat)scale {
 	UIGraphicsBeginImageContextWithOptions(self.bounds.size, NO, scale);
 	if ([self respondsToSelector:@selector(drawViewHierarchyInRect:afterScreenUpdates:)]) {
 		[self drawViewHierarchyInRect:self.bounds afterScreenUpdates:YES];
@@ -883,7 +899,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
  */
 @implementation UIImage (URBImageEffects)
 
-- (UIImage *)URB_applyBlurWithRadius:(CGFloat)blurRadius tintColor:(UIColor *)tintColor saturationDeltaFactor:(CGFloat)saturationDeltaFactor maskImage:(UIImage *)maskImage {
+- (UIImage *)urb_applyBlurWithRadius:(CGFloat)blurRadius tintColor:(UIColor *)tintColor saturationDeltaFactor:(CGFloat)saturationDeltaFactor maskImage:(UIImage *)maskImage {
 	// Check pre-conditions.
     if (self.size.width < 1 || self.size.height < 1) {
         NSLog (@"*** error: invalid size: (%.2f x %.2f). Both dimensions must be >= 1: %@", self.size.width, self.size.height, self);
