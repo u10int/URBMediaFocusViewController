@@ -197,6 +197,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)showImage:(UIImage *)image fromRect:(CGRect)fromRect {
+	NSAssert(image, @"Image is required");
+
 	[self view]; // make sure view has loaded first
 	_currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
 	self.fromRect = fromRect;
@@ -326,7 +328,14 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	// cancel any outstanding requests if we have one
 	[self cancelURLConnectionIfAny];
 	
-	NSURLRequest *request = [NSURLRequest requestWithURL:url];
+	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+	if (self.requestHTTPHeaders.count > 0) {
+		for (NSString *key in self.requestHTTPHeaders) {
+			NSString *value = [self.requestHTTPHeaders valueForKey:key];
+			[request setValue:value forHTTPHeaderField:key];
+		}
+	}
+	
 	NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
 	self.urlConnection = connection;
 	

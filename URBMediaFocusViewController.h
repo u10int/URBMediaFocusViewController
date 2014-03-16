@@ -58,6 +58,9 @@
 
 @property (nonatomic, weak) id<URBMediaFocusViewControllerDelegate> delegate;
 
+// HTTP header values included in URL requests
+@property (nonatomic, strong) NSDictionary *requestHTTPHeaders;
+
 /**
  *  Convenience method for not using a parentViewController.
  *  @see showImage:fromView:inViewController
