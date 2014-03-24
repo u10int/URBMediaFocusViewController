@@ -575,8 +575,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
 		[self becomeFirstResponder];
 		
-		UIMenuItem *saveImageItem = [[UIMenuItem alloc] initWithTitle:@"Save" action:@selector(saveImage:)];
-		UIMenuItem *copyImageItem = [[UIMenuItem alloc] initWithTitle:@"Copy" action:@selector(copyImage:)];
+		UIMenuItem *saveImageItem = [[UIMenuItem alloc] initWithTitle:NSLocalizedString(@"Save", nil) action:@selector(saveImage:)];
+		UIMenuItem *copyImageItem = [[UIMenuItem alloc] initWithTitle:NSLocalizedString(@"Copy", nil) action:@selector(copyImage:)];
 		
 		UIMenuController *menuController = [UIMenuController sharedMenuController];
 		[menuController setMenuItems:@[saveImageItem, copyImageItem]];
