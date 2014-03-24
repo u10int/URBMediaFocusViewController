@@ -15,5 +15,5 @@ Pod::Spec.new do |s|
 	s.license			= { :type => 'MIT', :file => 'LICENSE' }
 	s.requires_arc		= true
 	s.source_files		= 'URBMediaFocusViewController.{h,m}'
-	s.frameworks		= 'UIKit', 'Foundation', 'CoreGraphics'
+	s.frameworks		= 'UIKit', 'Foundation', 'CoreGraphics', 'ALAssetsLibrary'
 end

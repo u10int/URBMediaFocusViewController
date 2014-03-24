@@ -7,6 +7,7 @@
 //
 
 #import <Accelerate/Accelerate.h>
+#import <AssetsLibrary/AssetsLibrary.h>
 #import "URBMediaFocusViewController.h"
 
 static const CGFloat __overlayAlpha = 0.7f;						// opacity of the black overlay displayed below the focused image
@@ -55,6 +56,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 @property (nonatomic, strong) UITapGestureRecognizer *doubleTapRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *tapRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *photoTapRecognizer;
+@property (nonatomic, strong) UILongPressGestureRecognizer *photoLongPressRecognizer;
 
 @property (nonatomic, strong) UIActivityIndicatorView *loadingView;
 @property (nonatomic, strong) NSURLConnection *urlConnection;
@@ -134,6 +136,11 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.tapRecognizer.numberOfTouchesRequired = 1;
 	[self.tapRecognizer requireGestureRecognizerToFail:self.doubleTapRecognizer];
 	[self.view addGestureRecognizer:self.tapRecognizer];
+	
+	// add save to album functionality
+	self.photoLongPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handlePhotoLongPressGesture:)];
+	self.photoLongPressRecognizer.delegate = self;
+	[self.imageView addGestureRecognizer:self.photoLongPressRecognizer];
 	
 	// only add pan gesture and physics stuff if we can (e.g., iOS 7+)
 	if (NSClassFromString(@"UIDynamicAnimator")) {
@@ -564,6 +571,20 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 #pragma mark - Gesture Methods
 
+- (void)handlePhotoLongPressGesture:(UILongPressGestureRecognizer *)gestureRecognizer {
+	if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
+		[self becomeFirstResponder];
+		
+		UIMenuItem *saveImageItem = [[UIMenuItem alloc] initWithTitle:@"Save" action:@selector(saveImage:)];
+		UIMenuItem *copyImageItem = [[UIMenuItem alloc] initWithTitle:@"Copy" action:@selector(copyImage:)];
+		
+		UIMenuController *menuController = [UIMenuController sharedMenuController];
+		[menuController setMenuItems:@[saveImageItem, copyImageItem]];
+    		[menuController setTargetRect:gestureRecognizer.view.frame inView:gestureRecognizer.view.superview];
+    		[menuController setMenuVisible:YES animated:YES];
+	}
+}
+
 - (void)handlePanGesture:(UIPanGestureRecognizer *)gestureRecognizer {
 	UIView *view = gestureRecognizer.view;
 	CGPoint location = [gestureRecognizer locationInView:self.view];
@@ -793,6 +814,36 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	else {
 		self.imageView.transform = CGAffineTransformConcat(CGAffineTransformIdentity, baseTransform);
 	}
+}
+
+#pragma mark - UIResponder
+
+- (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
+	if (action == @selector(saveImage:)) {
+		ALAuthorizationStatus status = [ALAssetsLibrary authorizationStatus];
+		return (status == ALAuthorizationStatusAuthorized || status == ALAuthorizationStatusNotDetermined);
+	} else if (action == @selector(copyImage:)) {
+		return YES;
+	}
+        return [super canPerformAction:action withSender:sender];
+}
+
+- (BOOL)canBecomeFirstResponder {
+	return YES;
+}
+
+- (void)copyImage:(id)sender {
+	[UIPasteboard generalPasteboard].image = self.imageView.image;
+}
+
+- (void)saveImage:(id)sender {
+	ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+	UIImage *image = self.imageView.image;
+	[library writeImageToSavedPhotosAlbum:image.CGImage orientation:(ALAssetOrientation)image.imageOrientation completionBlock:^(__unused NSURL *assetURL, NSError *error) {
+		if (error) {
+			[[[UIAlertView alloc] initWithTitle:error.localizedDescription message:error.localizedRecoverySuggestion delegate:nil cancelButtonTitle:NSLocalizedString(@"Ok", nil) otherButtonTitles:nil, nil] show];
+		}
+	}];
 }
 
 @end
