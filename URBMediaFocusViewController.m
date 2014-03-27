@@ -7,6 +7,7 @@
 //
 
 #import <Accelerate/Accelerate.h>
+#import <QuartzCore/QuartzCore.h>
 #import "URBMediaFocusViewController.h"
 
 static const CGFloat __overlayAlpha = 0.7f;						// opacity of the black overlay displayed below the focused image
@@ -117,6 +118,11 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.imageView.contentMode = UIViewContentModeScaleAspectFit;
 	self.imageView.alpha = 0.0f;
 	self.imageView.userInteractionEnabled = YES;
+	// Enable edge antialiasing on 7.0 or later.
+	// This symbol appears pre-7.0 but is not considered public API until 7.0
+	if (([[[UIDevice currentDevice] systemVersion] compare:@"7.0" options:NSNumericSearch] != NSOrderedAscending)) {
+		self.imageView.layer.allowsEdgeAntialiasing = YES;
+	}
 	[self.scrollView addSubview:self.imageView];
 	
 	/* setup gesture recognizers */
