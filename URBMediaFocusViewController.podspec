@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 	s.name				= 'URBMediaFocusViewController'
-	s.version			= '0.5.2'
+	s.version			= '0.5.3'
 	s.summary			= 'A view controller that focuses images to their full size with physics similar to Tweetbot 3.'
 	s.description		= 'URBMediaFocusViewController is an experiment to recreate the view used to enlarge photos and videos from their thumbnail previews as seen in Tweetbot 3 for iOS 7 using the new UIDynamics API available in iOS 7.'
 	s.homepage			= 'https://github.com/u10int/URBMediaFocusViewController'
