@@ -15,7 +15,7 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
 	DemoViewController *controller = [[DemoViewController alloc] initWithNibName:nil bundle:nil];
-	self.window.rootViewController = controller;
+	self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:controller];
 	
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];

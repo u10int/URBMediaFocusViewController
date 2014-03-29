@@ -206,8 +206,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (void)showImage:(UIImage *)image fromView:(UIView *)fromView inViewController:(UIViewController *)parentViewController {
 	self.fromView = fromView;
 	//self.targetViewController = parentViewController;
+	UIView *superview = (parentViewController) ? parentViewController.view : fromView.superview;
+	CGRect fromRect = [superview convertRect:fromView.frame toView:nil];
 	
-	CGRect fromRect = [self.view convertRect:fromView.frame fromView:parentViewController.view];
 	[self showImage:image fromRect:fromRect];
 }
 
@@ -247,10 +248,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	CGPoint midpoint = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
 	CGSize scaledImageSize = CGSizeMake(image.size.width * scale, image.size.height * scale);
 	CGRect targetRect = CGRectMake(midpoint.x - scaledImageSize.width / 2.0, midpoint.y - scaledImageSize.height / 2.0, scaledImageSize.width, scaledImageSize.height);
-	self.imageView.frame = targetRect;
 	
 	// set initial frame of image view to match that of the presenting image
-	self.imageView.frame = fromRect;
+	self.imageView.frame = [self.view convertRect:fromRect fromView:nil];
 	_originalFrame = fromRect;
 	
 	// rotate imageView based on current device orientation
@@ -334,7 +334,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.fromView = fromView;
 	self.targetViewController = parentViewController;
 	
-	CGRect fromRect = [self.view convertRect:fromView.frame fromView:nil];
+	UIView *superview = (parentViewController) ? parentViewController.view : fromView.superview;
+	CGRect fromRect = [superview convertRect:fromView.frame toView:nil];
+	
 	[self showImageFromURL:url fromRect:fromRect];
 }
 
