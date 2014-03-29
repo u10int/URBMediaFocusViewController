@@ -225,8 +225,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.imageView.alpha = 0.2;
 	
 	// create snapshot of background if parallax is enabled
-	if (self.parallaxEnabled) {
-		[self createViewsForParallax];
+	if (self.parallaxEnabled || self.shouldBlurBackground) {
+		[self createViewsForBackground];
 		
 		// hide status bar, but store whether or not we need to unhide it later when dismissing this view
 		// NOTE: in iOS 7+, this only works if you set `UIViewControllerBasedStatusBarAppearance` to YES in your Info.plist
@@ -310,8 +310,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		
 		if (self.snapshotView) {
 			self.blurredSnapshotView.alpha = 1.0f;
-			self.blurredSnapshotView.transform = CGAffineTransformScale(CGAffineTransformIdentity, __backgroundScale, __backgroundScale);
-			self.snapshotView.transform = CGAffineTransformScale(CGAffineTransformIdentity, __backgroundScale, __backgroundScale);
+			if (self.parallaxEnabled) {
+				self.blurredSnapshotView.transform = CGAffineTransformScale(CGAffineTransformIdentity, __backgroundScale, __backgroundScale);
+				self.snapshotView.transform = CGAffineTransformScale(CGAffineTransformIdentity, __backgroundScale, __backgroundScale);
+			}
 		}
 		
 	} completion:^(BOOL finished) {
@@ -430,10 +432,17 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	return [UIApplication sharedApplication].keyWindow;
 }
 
-- (void)createViewsForParallax {
+- (void)createViewsForBackground {
 	// container view for window
+	CGRect containerFrame = CGRectMake(0, 0, CGRectGetWidth(self.keyWindow.frame), CGRectGetHeight(self.keyWindow.frame));
+	
 	// inset container view so we can blur the edges, but we also need to scale up so when __backgroundScale is applied, everything lines up
-	CGRect containerFrame = CGRectMake(0, 0, CGRectGetWidth(self.keyWindow.frame) * (1.0f / __backgroundScale), CGRectGetHeight(self.keyWindow.frame) * (1.0f / __backgroundScale));
+	// only perform inset if `parallaxEnabled` is YES
+	if (self.parallaxEnabled) {
+		containerFrame.size.width *= 1.0f / __backgroundScale;
+		containerFrame.size.height *= 1.0f / __backgroundScale;
+	}
+	
 	UIView *containerView = [[UIView alloc] initWithFrame:CGRectIntegral(containerFrame)];
 	containerView.backgroundColor = [UIColor blackColor];
 	

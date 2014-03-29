@@ -57,14 +57,16 @@ Most of the customization options included within this component are related to 
 
 By default, parallax and blur effects are enabled. To disable one or both effects, just set the following properties on your instance:
 
-	self.parallaxEnabled = NO;
-	self.shouldBlurBackground = NO;
-
-Note that currently if you disable the parallax effect, the background blur will also be disabled.
+	self.parallaxEnabled = NO;				// default YES
+	self.shouldBlurBackground = NO;			// default YES
 
 By default, tapping on the image will not dismiss the focus view (as controlled by `shouldDismissOnTap`), but tapping outside of the image bounds will. You can change this by setting `shouldDismissOnImageTap` to `YES` on your `URBMediaFocusViewController` instance, which will allow tapping directly on the image to dismiss:
 
-	self.shouldDismissOnImageTap = YES;
+	self.shouldDismissOnImageTap = YES;	// default NO
+	
+If you wish to only dismiss using UIDynamics, you can also dismiss the default tap gesture used to dismiss (not recommended for iOS 6 since UIDynamics isn't available):
+
+	self.shouldDismissOnTap = NO;			// default YES
 	
 You can also provide copy and save actions for the presented photo from an action sheet when the image receives a long press gesture. By default this feature is disabled, so just control this using the `shouldShowPhotoActions` property:
 
