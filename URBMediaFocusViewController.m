@@ -12,7 +12,7 @@
 
 #import "URBMediaFocusViewController.h"
 
-static const CGFloat __overlayAlpha = 0.7f;						// opacity of the black overlay displayed below the focused image
+static const CGFloat __overlayAlpha = 0.6f;						// opacity of the black overlay displayed below the focused image
 static const CGFloat __animationDuration = 0.18f;				// the base duration for present/dismiss animations (except physics-related ones)
 static const CGFloat __maximumDismissDelay = 0.5f;				// maximum time of delay (in seconds) between when image view is push out and dismissal animations begin
 static const CGFloat __resistance = 0.0f;						// linear resistance applied to the image’s dynamic item behavior
@@ -105,7 +105,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.view.frame = self.keyWindow.bounds;
 	
 	self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.keyWindow.frame), CGRectGetHeight(self.keyWindow.frame))];
-	self.backgroundView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.6f];
+	self.backgroundView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:__overlayAlpha];
 	self.backgroundView.alpha = 0.0f;
 	self.backgroundView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
 	[self.view addSubview:self.backgroundView];
