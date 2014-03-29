@@ -251,7 +251,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	// set initial frame of image view to match that of the presenting image
 	self.imageView.frame = [self.view convertRect:fromRect fromView:nil];
-	_originalFrame = fromRect;
+	_originalFrame = targetRect;
 	
 	// rotate imageView based on current device orientation
 	[self reposition];
@@ -765,7 +765,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	BOOL shouldRecognize = transformScale > _minScale;
 	
 	// make sure tap and double tap gestures aren't recognized simultaneously
-	shouldRecognize = !([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]] && [otherGestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]);
+	shouldRecognize = shouldRecognize && !([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]] && [otherGestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]);
 	
 	return shouldRecognize;
 }
