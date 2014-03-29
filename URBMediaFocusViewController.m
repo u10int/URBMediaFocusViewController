@@ -8,6 +8,8 @@
 
 #import <Accelerate/Accelerate.h>
 #import <QuartzCore/QuartzCore.h>
+#import <AssetsLibrary/AssetsLibrary.h>
+
 #import "URBMediaFocusViewController.h"
 
 static const CGFloat __overlayAlpha = 0.7f;						// opacity of the black overlay displayed below the focused image
@@ -36,7 +38,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (UIImage *)urb_applyBlurWithRadius:(CGFloat)blurRadius tintColor:(UIColor *)tintColor saturationDeltaFactor:(CGFloat)saturationDeltaFactor maskImage:(UIImage *)maskImage;
 @end
 
-@interface URBMediaFocusViewController () <UIScrollViewDelegate>
+@interface URBMediaFocusViewController () <UIScrollViewDelegate, UIActionSheetDelegate>
 
 @property (nonatomic, strong) UIView *fromView;
 @property (nonatomic, assign) CGRect fromRect;
@@ -56,6 +58,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 @property (nonatomic, strong) UITapGestureRecognizer *doubleTapRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *tapRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *photoTapRecognizer;
+@property (nonatomic, strong) UILongPressGestureRecognizer *photoLongPressRecognizer;
 
 @property (nonatomic, strong) UIActivityIndicatorView *loadingView;
 @property (nonatomic, strong) NSURLConnection *urlConnection;
@@ -87,6 +90,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		self.parallaxEnabled = YES;
 		self.shouldDismissOnTap = YES;
 		self.shouldDismissOnImageTap = NO;
+		self.shouldShowPhotoActions = NO;
 	}
 	return self;
 }
@@ -140,6 +144,13 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.tapRecognizer.numberOfTouchesRequired = 1;
 	[self.tapRecognizer requireGestureRecognizerToFail:self.doubleTapRecognizer];
 	[self.view addGestureRecognizer:self.tapRecognizer];
+	
+	// long press gesture recognizer to bring up photo actions (when `shouldShowPhotoActions` is set to YES)
+	if (self.shouldShowPhotoActions) {
+		self.photoLongPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPressGesture:)];
+		self.photoLongPressRecognizer.delegate = self;
+		[self.imageView addGestureRecognizer:self.photoLongPressRecognizer];
+	}
 	
 	// only add pan gesture and physics stuff if we can (e.g., iOS 7+)
 	if (NSClassFromString(@"UIDynamicAnimator")) {
@@ -197,8 +208,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	//self.targetViewController = parentViewController;
 	
 	CGRect fromRect = [self.view convertRect:fromView.frame fromView:parentViewController.view];
-	NSLog(@"self.view.frame=%@", NSStringFromCGRect(self.view.frame));
-	NSLog(@"fromRect=%@", NSStringFromCGRect(fromRect));
 	[self showImage:image fromRect:fromRect];
 }
 
@@ -568,6 +577,24 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}
 }
 
+- (void)saveImageToLibrary:(UIImage *)image {
+	ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+	[library writeImageToSavedPhotosAlbum:image.CGImage orientation:(ALAssetOrientation)image.imageOrientation completionBlock:^(NSURL *assetURL, NSError *error) {
+		if (error) {
+			UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:error.localizedDescription
+																message:error.localizedRecoverySuggestion
+															   delegate:nil
+													  cancelButtonTitle:NSLocalizedString(@"OK", nil)
+													  otherButtonTitles:nil];
+			[alertView show];
+		}
+	}];
+}
+
+- (void)copyImage:(UIImage *)image {
+	[UIPasteboard generalPasteboard].image = image;
+}
+
 #pragma mark - Gesture Methods
 
 - (void)handlePanGesture:(UIPanGestureRecognizer *)gestureRecognizer {
@@ -682,6 +709,17 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}
 }
 
+- (void)handleLongPressGesture:(UILongPressGestureRecognizer *)gestureRecognizer {
+	if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
+		UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil
+																 delegate:self
+														cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
+												   destructiveButtonTitle:nil
+														otherButtonTitles:NSLocalizedString(@"Save Photo", nil), NSLocalizedString(@"Copy Photo", nil), nil];
+		[actionSheet showInView:self.view];
+	}
+}
+
 #pragma mark - UIScrollViewDelegate Methods
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView {
@@ -703,6 +741,17 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		scrollView.scrollEnabled = YES;
 	}
 	[self centerScrollViewContents];
+}
+
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+	if (buttonIndex == 0) {
+		[self saveImageToLibrary:self.imageView.image];
+	}
+	else if (buttonIndex == 1) {
+		[self copyImage:self.imageView.image];
+	}
 }
 
 #pragma mark - UIGestureRecognizerDelegate Methods

@@ -23,6 +23,7 @@
 		2B18684B183C758500539B97 /* raceforfood.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684A183C758500539B97 /* raceforfood.jpg */; };
 		2B18684D183C852900539B97 /* panorama.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684C183C852900539B97 /* panorama.jpg */; };
 		2B18684F183C869300539B97 /* panorama_vert.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684E183C869300539B97 /* panorama_vert.jpg */; };
+		2B82035018E65C8900610831 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B82034F18E65C8900610831 /* AssetsLibrary.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 		2B18684A183C758500539B97 /* raceforfood.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = raceforfood.jpg; sourceTree = "<group>"; };
 		2B18684C183C852900539B97 /* panorama.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = panorama.jpg; sourceTree = "<group>"; };
 		2B18684E183C869300539B97 /* panorama_vert.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = panorama_vert.jpg; sourceTree = "<group>"; };
+		2B82034F18E65C8900610831 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B82035018E65C8900610831 /* AssetsLibrary.framework in Frameworks */,
 				2B0745731826C6020092FA56 /* CoreGraphics.framework in Frameworks */,
 				2B0745751826C6020092FA56 /* UIKit.framework in Frameworks */,
 				2B0745711826C6020092FA56 /* Foundation.framework in Frameworks */,
@@ -106,6 +109,7 @@
 		2B07456F1826C6020092FA56 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2B82034F18E65C8900610831 /* AssetsLibrary.framework */,
 				2B0745701826C6020092FA56 /* Foundation.framework */,
 				2B0745721826C6020092FA56 /* CoreGraphics.framework */,
 				2B0745741826C6020092FA56 /* UIKit.framework */,
@@ -373,7 +377,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "URBMediaFocusViewControllerDemo/URBMediaFocusViewControllerDemo-Prefix.pch";
 				INFOPLIST_FILE = "URBMediaFocusViewControllerDemo/URBMediaFocusViewControllerDemo-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
@@ -390,7 +394,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "URBMediaFocusViewControllerDemo/URBMediaFocusViewControllerDemo-Prefix.pch";
 				INFOPLIST_FILE = "URBMediaFocusViewControllerDemo/URBMediaFocusViewControllerDemo-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;

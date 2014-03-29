@@ -56,6 +56,9 @@
 // determines whether or not view should be dismissed when the container view is tapped within bounds of image view
 @property (nonatomic, assign) BOOL shouldDismissOnImageTap;
 
+// determines if photo action sheet should appear with a long press on the photo (default NO)
+@property (nonatomic, assign) BOOL shouldShowPhotoActions;
+
 @property (nonatomic, weak) id<URBMediaFocusViewControllerDelegate> delegate;
 
 // HTTP header values included in URL requests
