@@ -25,7 +25,7 @@ To use `URBMediaFocusViewController` in your own project, just import `URBMediaF
 
 The project uses ARC and targets iOS 7.0+.
 
-**NOTE:** This project has been updated to work with and tested against iOS 6. However, the UIDynamics features are only support in iOS 7+.
+**NOTE:** This project has been updated to work with and tested against iOS 6 (when compiling using Xcode 5+). However, the UIDynamics features are only support in iOS 7+.
 
 ## Usage Examples
 
@@ -65,6 +65,10 @@ Note that currently if you disable the parallax effect, the background blur will
 By default, tapping on the image will not dismiss the focus view (as controlled by `shouldDismissOnTap`), but tapping outside of the image bounds will. You can change this by setting `shouldDismissOnImageTap` to `YES` on your `URBMediaFocusViewController` instance, which will allow tapping directly on the image to dismiss:
 
 	self.shouldDismissOnImageTap = YES;
+	
+You can also provide copy and save actions for the presented photo from an action sheet when the image receives a long press gesture. By default this feature is disabled, so just control this using the `shouldShowPhotoActions` property:
+
+	self.shouldShowPhotoActions = YES;		// default NO
 
 ## TODO
 
