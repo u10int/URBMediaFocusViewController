@@ -99,6 +99,10 @@
 	}
 }
 
+- (BOOL)shouldAutorotate {
+	return NO;
+}
+
 - (void)showFocusView:(UITapGestureRecognizer *)gestureRecognizer {
 	//[self.mediaFocusController showImage:[UIImage imageNamed:@"seattle01.jpg"] fromView:self.thumbnailView inView:self.view];
 	

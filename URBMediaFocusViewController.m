@@ -216,6 +216,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 	[self view]; // make sure view has loaded first
 	_currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
+	//fromRect = CGRectApplyAffineTransform(fromRect, [self transformForOrientation:_currentOrientation]);
 	self.fromRect = fromRect;
 	
 	self.imageView.transform = CGAffineTransformIdentity;
@@ -249,9 +250,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.imageView.frame = targetRect;
 	
 	// set initial frame of image view to match that of the presenting image
-	//self.imageView.frame = CGRectMake(midpoint.x - image.size.width / 2.0, midpoint.y - image.size.height / 2.0, image.size.width, image.size.height);
-	self.imageView.frame = [self.view convertRect:fromRect fromView:nil];
-	_originalFrame = targetRect;
+	self.imageView.frame = fromRect;
+	_originalFrame = fromRect;
+	
 	// rotate imageView based on current device orientation
 	[self reposition];
     
@@ -544,6 +545,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)cleanup {
+	_hasLaidOut = NO;
 	[self.view removeFromSuperview];
 	
 	if (self.targetViewController) {
