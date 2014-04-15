@@ -16,6 +16,7 @@
 @property (nonatomic, strong) UIImageView *localThumbnailView;
 @property (nonatomic, strong) UIImageView *panoramaThumbnailView;
 @property (nonatomic, strong) UIImageView *verticalPanoramaThumbnailView;
+@property (nonatomic, strong) UIImageView *animatedThumbnailView;
 @property (nonatomic, strong) NSMutableData *remoteData;
 @property (nonatomic, strong) URBMediaFocusViewController *mediaFocusController;
 @property (nonatomic, strong) NSURLConnection *connection;
@@ -43,49 +44,26 @@
 	//self.mediaFocusController.shouldDismissOnTap = NO; // uncomment if you wish to disable dismissing the view on a single tap outside image bounds
 	//self.mediaFocusController.shouldDismissOnImageTap = YES;	// uncomment if you wish to support dismissing view on a single tap on the image itself
 	
-	self.thumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(20.0, 20.0, 100.0, 100.0)];
-	self.thumbnailView.backgroundColor = [UIColor darkGrayColor];
-	self.thumbnailView.contentMode = UIViewContentModeScaleAspectFill;
-	self.thumbnailView.clipsToBounds = YES;
-	self.thumbnailView.userInteractionEnabled = YES;
+	self.thumbnailView = [self thumbnailViewWithOrigin:CGPointMake(20.0, 20.0)];
 	self.thumbnailView.image = [UIImage imageNamed:@"seattle01.jpg"];
-	[self.view addSubview:self.thumbnailView];
-	[self addTapGestureToView:self.thumbnailView];
 	
-	self.remoteThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMinX(self.thumbnailView.frame), CGRectGetMaxY(self.thumbnailView.frame) + 20.0, 100.0, 100.0)];
-	self.remoteThumbnailView.backgroundColor = [UIColor darkGrayColor];
-	self.remoteThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
-	self.remoteThumbnailView.clipsToBounds = YES;
-	self.remoteThumbnailView.userInteractionEnabled = YES;
-	[self.view addSubview:self.remoteThumbnailView];
-	[self addTapGestureToView:self.remoteThumbnailView];
+	self.remoteThumbnailView = [self thumbnailViewWithOrigin:CGPointMake(CGRectGetMinX(self.thumbnailView.frame), CGRectGetMaxY(self.thumbnailView.frame) + 20.0)];
 	
-	self.localThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMinX(self.thumbnailView.frame), CGRectGetMaxY(self.remoteThumbnailView.frame) + 20.0, 100.0, 100.0)];
-	self.localThumbnailView.backgroundColor = [UIColor darkGrayColor];
-	self.localThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
-	self.localThumbnailView.clipsToBounds = YES;
-	self.localThumbnailView.userInteractionEnabled = YES;
+	self.localThumbnailView = [self thumbnailViewWithOrigin:CGPointMake(CGRectGetMinX(self.thumbnailView.frame),
+																		CGRectGetMaxY(self.remoteThumbnailView.frame) + 20.0)];
 	self.localThumbnailView.image = [UIImage imageNamed:@"raceforfood.jpg"];
-	[self.view addSubview:self.localThumbnailView];
-	[self addTapGestureToView:self.localThumbnailView];
 	
-	self.panoramaThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMinX(self.thumbnailView.frame), CGRectGetMaxY(self.localThumbnailView.frame) + 20.0, 100.0, 100.0)];
-	self.panoramaThumbnailView.backgroundColor = [UIColor darkGrayColor];
-	self.panoramaThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
-	self.panoramaThumbnailView.clipsToBounds = YES;
-	self.panoramaThumbnailView.userInteractionEnabled = YES;
+	self.panoramaThumbnailView = [self thumbnailViewWithOrigin:CGPointMake(CGRectGetMinX(self.thumbnailView.frame),
+																		   CGRectGetMaxY(self.localThumbnailView.frame) + 20.0)];
 	self.panoramaThumbnailView.image = [UIImage imageNamed:@"panorama.jpg"];
-	[self.view addSubview:self.panoramaThumbnailView];
-	[self addTapGestureToView:self.panoramaThumbnailView];
 	
-	self.verticalPanoramaThumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.thumbnailView.frame) + 30.0f, CGRectGetMinY(self.thumbnailView.frame), 100.0, 100.0)];
-	self.verticalPanoramaThumbnailView.backgroundColor = [UIColor darkGrayColor];
-	self.verticalPanoramaThumbnailView.contentMode = UIViewContentModeScaleAspectFill;
-	self.verticalPanoramaThumbnailView.clipsToBounds = YES;
-	self.verticalPanoramaThumbnailView.userInteractionEnabled = YES;
+	self.verticalPanoramaThumbnailView = [self thumbnailViewWithOrigin:CGPointMake(CGRectGetMaxX(self.thumbnailView.frame) + 30.0f,
+																				   CGRectGetMinY(self.thumbnailView.frame))];
 	self.verticalPanoramaThumbnailView.image = [UIImage imageNamed:@"panorama_vert.jpg"];
-	[self.view addSubview:self.verticalPanoramaThumbnailView];
-	[self addTapGestureToView:self.verticalPanoramaThumbnailView];
+	
+	self.animatedThumbnailView = [self thumbnailViewWithOrigin:CGPointMake(CGRectGetMaxX(self.thumbnailView.frame) + 30.0f,
+																		   CGRectGetMaxY(self.verticalPanoramaThumbnailView.frame) + 30.0f)];
+	self.animatedThumbnailView.image = [UIImage imageNamed:@"panorama_vert.jpg"];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -124,6 +102,9 @@
 		}
 		else if (gestureRecognizer.view == self.localThumbnailView) {
 			url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
+		}
+		else if (gestureRecognizer.view == self.animatedThumbnailView) {
+			url = [NSURL URLWithString:@"http://s3-ec.buzzfed.com/static/enhanced/webdr02/2012/12/19/13/anigif_enhanced-buzz-8195-1355941233-2.gif"];
 		}
 		else {
 			url = [NSURL URLWithString:@"http://farm3.staticflickr.com/2109/5763011359_f371b21fc9_b.jpg"];
@@ -171,6 +152,20 @@
 		self.remoteThumbnailView.image = [UIImage imageWithData:self.remoteData];
 		
 	}
+}
+
+#pragma mark - Private Methods
+
+- (UIImageView *)thumbnailViewWithOrigin:(CGPoint)origin {
+	UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(origin.x, origin.y, 100.0, 100.0)];
+	imageView.backgroundColor = [UIColor darkGrayColor];
+	imageView.contentMode = UIViewContentModeScaleAspectFill;
+	imageView.clipsToBounds = YES;
+	imageView.userInteractionEnabled = YES;
+	[self.view addSubview:imageView];
+	[self addTapGestureToView:imageView];
+	
+	return imageView;
 }
 
 @end
