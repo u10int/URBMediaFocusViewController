@@ -1,5 +1,6 @@
 URBMediaFocusViewController
 ============
+[![Build Status](https://travis-ci.org/u10int/URBMediaFocusViewController.svg)](https://travis-ci.org/u10int/URBMediaFocusViewController)
 
 ## Overview
 
