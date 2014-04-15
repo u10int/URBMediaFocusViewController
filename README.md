@@ -50,6 +50,11 @@ The following is a basic example of showing an image that is linked into your pr
 In most cases, you would present `URBMediaFocusViewController` from your app's key window, which is the default implementation. However, in some cases you may want to present your `URBMediaFocusViewController` view from a specific view controller. You can provide a parent view controller in those cases, and the `URBMediaFocusViewController` instance will be added on top of that controller's view:
 
 	[self.mediaFocusController showImageFromURL:url fromView:self.thubmnailView inViewController:self];
+	
+The component will automatically detect if a loaded remote image is a GIF and properly animate it once it appears if so. You can also use the following built-in category methods to provide your own animated GIF image when displaying images that are local to your project:
+
+	+ (UIImage *)urb_animatedImageWithAnimatedGIFData:(NSData *)data;
+	+ (UIImage *)urb_animatedImageWithAnimatedGIFURL:(NSURL *)url;
 
 ## Customization
 
@@ -77,6 +82,7 @@ You can also provide copy and save actions for the presented photo from an actio
 - ~~Add CocoaPods spec~~ (added 11/15/2013)
 - Support for handling device orientation changes
 - ~~Support for focusing in image from a web view (issue #6)~~ (added 1/5/2014)
+- ~~Support for animated GIFs~~ (added 4/14/2014)
 - Add support for loading videos similar to the method for remote photos
 - Consider adding support for additional present/dismiss transition animations
 

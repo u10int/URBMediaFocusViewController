@@ -23,6 +23,7 @@
 		2B18684B183C758500539B97 /* raceforfood.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684A183C758500539B97 /* raceforfood.jpg */; };
 		2B18684D183C852900539B97 /* panorama.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684C183C852900539B97 /* panorama.jpg */; };
 		2B18684F183C869300539B97 /* panorama_vert.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684E183C869300539B97 /* panorama_vert.jpg */; };
+		2B407B1018FCE6DC00D1608E /* animated_thumb.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B407B0F18FCE6DB00D1608E /* animated_thumb.jpg */; };
 		2B82035018E65C8900610831 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B82034F18E65C8900610831 /* AssetsLibrary.framework */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +59,7 @@
 		2B18684A183C758500539B97 /* raceforfood.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = raceforfood.jpg; sourceTree = "<group>"; };
 		2B18684C183C852900539B97 /* panorama.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = panorama.jpg; sourceTree = "<group>"; };
 		2B18684E183C869300539B97 /* panorama_vert.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = panorama_vert.jpg; sourceTree = "<group>"; };
+		2B407B0F18FCE6DB00D1608E /* animated_thumb.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = animated_thumb.jpg; sourceTree = "<group>"; };
 		2B82034F18E65C8900610831 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -146,6 +148,7 @@
 		2B0745A51826D0E00092FA56 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2B407B0F18FCE6DB00D1608E /* animated_thumb.jpg */,
 				2B18684E183C869300539B97 /* panorama_vert.jpg */,
 				2B18684C183C852900539B97 /* panorama.jpg */,
 				2B18684A183C758500539B97 /* raceforfood.jpg */,
@@ -237,6 +240,7 @@
 				2B0745A71826D0E00092FA56 /* seattle01.jpg in Resources */,
 				2B18684F183C869300539B97 /* panorama_vert.jpg in Resources */,
 				2B18684D183C852900539B97 /* panorama.jpg in Resources */,
+				2B407B1018FCE6DC00D1608E /* animated_thumb.jpg in Resources */,
 				2B0745831826C6020092FA56 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

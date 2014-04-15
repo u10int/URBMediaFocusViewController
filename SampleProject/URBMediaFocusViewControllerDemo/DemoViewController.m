@@ -63,7 +63,7 @@
 	
 	self.animatedThumbnailView = [self thumbnailViewWithOrigin:CGPointMake(CGRectGetMaxX(self.thumbnailView.frame) + 30.0f,
 																		   CGRectGetMaxY(self.verticalPanoramaThumbnailView.frame) + 30.0f)];
-	self.animatedThumbnailView.image = [UIImage imageNamed:@"panorama_vert.jpg"];
+	self.animatedThumbnailView.image = [UIImage imageNamed:@"animated_thumb.jpg"];
 }
 
 - (void)viewDidAppear:(BOOL)animated {

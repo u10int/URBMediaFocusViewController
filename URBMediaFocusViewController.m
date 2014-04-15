@@ -38,11 +38,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (UIImage *)urb_applyBlurWithRadius:(CGFloat)blurRadius tintColor:(UIColor *)tintColor saturationDeltaFactor:(CGFloat)saturationDeltaFactor maskImage:(UIImage *)maskImage;
 @end
 
-@interface UIImage (URBAnimatedGIF)
-+ (UIImage *)urb_animatedImageWithAnimatedGIFData:(NSData *)data;
-+ (UIImage *)urb_animatedImageWithAnimatedGIFURL:(NSURL *)url;
-@end
-
 @interface URBMediaFocusViewController () <UIScrollViewDelegate, UIActionSheetDelegate>
 
 @property (nonatomic, strong) UIView *fromView;
