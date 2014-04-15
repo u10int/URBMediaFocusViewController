@@ -3,3 +3,5 @@ xcode_project: SampleProject/URBMediaFocusViewControllerDemo.xcodeproj
 xcode_scheme: URBMediaFocusViewControllerDemo
 before_install:
   - gem install cocoapods
+script:
+  - xctool -project SampleProject/URBMediaFocusViewControllerDemo.xcodeproj -scheme URBMediaFocusViewControllerDemo -sdk iphonesimulator build
