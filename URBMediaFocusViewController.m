@@ -91,6 +91,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		self.shouldDismissOnTap = YES;
 		self.shouldDismissOnImageTap = NO;
 		self.shouldShowPhotoActions = NO;
+		self.shouldRotateToDeviceOrientation = YES;
 	}
 	return self;
 }
@@ -821,7 +822,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	UIInterfaceOrientation deviceOrientation = (UIInterfaceOrientation)[UIDevice currentDevice].orientation;
 	if (_currentOrientation != deviceOrientation) {
 		_currentOrientation = deviceOrientation;
-		[self reposition];
+		if (self.shouldRotateToDeviceOrientation) {
+			[self reposition];
+		}
 	}
 }
 

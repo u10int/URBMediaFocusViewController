@@ -59,6 +59,9 @@
 // determines if photo action sheet should appear with a long press on the photo (default NO)
 @property (nonatomic, assign) BOOL shouldShowPhotoActions;
 
+//determines if view should rotate when the device orientation changes (default YES)
+@property (nonatomic, assign) BOOL shouldRotateToDeviceOrientation;
+
 @property (nonatomic, weak) id<URBMediaFocusViewControllerDelegate> delegate;
 
 // HTTP header values included in URL requests
