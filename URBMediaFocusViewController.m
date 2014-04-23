@@ -714,12 +714,14 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	if (self.shouldDismissOnTap) {
 		if (self.shouldDismissOnImageTap || !CGRectContainsPoint(self.imageView.frame, location)) {
 			[self dismissToTargetView];
+            return;
 		}
 	}
 	
 	if (self.shouldDismissOnImageTap && CGRectContainsPoint(self.imageView.frame, location)) {
 		// we aren't allowing taps outside of image bounds to dismiss, but tap was detected on image view, we can dismiss
 		[self dismissToTargetView];
+        return;
 	}
 }
 
