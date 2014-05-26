@@ -219,12 +219,13 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)showImage:(UIImage *)image fromRect:(CGRect)fromRect {
-	NSAssert(image, @"Image is required");
-
 	[self view]; // make sure view has loaded first
 	_currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
-	//fromRect = CGRectApplyAffineTransform(fromRect, [self transformForOrientation:_currentOrientation]);
-	self.fromRect = fromRect;
+	
+	// since UIWindow always use portrait orientation in convertRect:inView:, we need to convert the source view's frame to
+	// this controller's view based on the current interface orientation
+	self.fromRect = [self convertRect:fromRect forOrientation:_currentOrientation];
+	NSLog(@"fromRect=%@", NSStringFromCGRect(self.fromRect));
 	
 	self.imageView.transform = CGAffineTransformIdentity;
 	self.imageView.image = image;
@@ -256,7 +257,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	CGRect targetRect = CGRectMake(midpoint.x - scaledImageSize.width / 2.0, midpoint.y - scaledImageSize.height / 2.0, scaledImageSize.width, scaledImageSize.height);
 	
 	// set initial frame of image view to match that of the presenting image
-	self.imageView.frame = [self.view convertRect:fromRect fromView:nil];
+	self.imageView.frame = self.fromRect;
 	_originalFrame = targetRect;
 	
 	// rotate imageView based on current device orientation
@@ -438,6 +439,32 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	return [UIApplication sharedApplication].keyWindow;
 }
 
+- (CGRect)windowBounds {
+	CGRect windowBounds = [UIScreen mainScreen].bounds;
+	
+	if (UIInterfaceOrientationIsLandscape(_currentOrientation)) {
+		windowBounds.size.width = windowBounds.size.height;
+		windowBounds.size.height = CGRectGetWidth([UIScreen mainScreen].bounds);
+	}
+	
+    return windowBounds;
+}
+
+- (CGRect)convertRect:(CGRect)rect forOrientation:(UIInterfaceOrientation)orientation {
+	if (orientation == UIInterfaceOrientationPortraitUpsideDown) {
+		rect.origin.x = CGRectGetWidth(self.view.frame) - CGRectGetWidth(rect) - CGRectGetMinX(rect);
+		rect.origin.y = CGRectGetHeight(self.view.frame) - CGRectGetHeight(rect) - CGRectGetMinY(rect);
+	}
+	else if (orientation == UIInterfaceOrientationLandscapeLeft) {
+		rect.origin = CGPointMake(CGRectGetHeight(self.view.frame) - CGRectGetHeight(rect) - CGRectGetMinY(rect), CGRectGetMinX(rect));
+	}
+	else if (orientation == UIInterfaceOrientationLandscapeRight) {
+		rect.origin = CGPointMake(CGRectGetMinY(rect), CGRectGetWidth(self.view.frame) - CGRectGetWidth(rect) - CGRectGetMinX(rect));
+	}
+	
+	return rect;
+}
+
 - (void)createViewsForBackground {
 	// container view for window
 	CGRect containerFrame = CGRectMake(0, 0, CGRectGetWidth(self.keyWindow.frame), CGRectGetHeight(self.keyWindow.frame));
@@ -524,7 +551,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	imageFrame.size.width *= _lastZoomScale;
 	imageFrame.size.height *= _lastZoomScale;
 	self.imageView.frame = imageFrame;
-	NSLog(@"scaling: scrollView.scale=%f, frame=%@", self.scrollView.zoomScale, NSStringFromCGRect(self.imageView.frame));
 }
 
 - (void)centerScrollViewContents {
@@ -634,7 +660,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		[self scaleImageForDynamics];
 	}
 	else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
-		NSLog(@"imageView.frame=%@, size=%@", NSStringFromCGRect(self.imageView.frame), NSStringFromCGSize(self.imageView.frame.size));
 		self.panAttachmentBehavior.anchorPoint = location;
 	}
 	else if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
@@ -750,7 +775,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
-	NSLog(@"scrollView.zoomScale: %f", scrollView.zoomScale);
 	// zoomScale of 1.0 is always our starting point, so anything other than that we disable the pan gesture recognizer
 	if (scrollView.zoomScale <= 1.0f && !scrollView.zooming) {
 		if (self.panRecognizer) {
@@ -853,7 +877,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	UIInterfaceOrientation deviceOrientation = (UIInterfaceOrientation)[UIDevice currentDevice].orientation;
 	if (_currentOrientation != deviceOrientation) {
 		_currentOrientation = deviceOrientation;
-		NSLog(@"deviceOrientationChanged: scrollView.zoomScale=%f, frame=%@", self.scrollView.zoomScale, NSStringFromCGRect(self.scrollView.frame));
 		if (self.shouldRotateToDeviceOrientation) {
 			[self reposition];
 		}
@@ -896,12 +919,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	// double the animation duration if we're rotation 180 degrees
 	if (isDoubleRotation) { duration *= 2; }
-	
-//	// need to re-adjust the scroll view's zoomScale when the device rotates to prevent 0 and -1 zoom scales
-//	self.scrollView.zoomScale = 1.0;
-//	// reset scrolling area equal to size of image
-//	self.scrollView.contentSize = self.imageView.image.size;
-//	
 	
 	// if we haven't laid out the subviews yet, we don't want to animate rotation and position transforms
 	if (_hasLaidOut) {
