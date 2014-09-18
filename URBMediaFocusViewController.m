@@ -118,6 +118,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	self.scrollView.showsHorizontalScrollIndicator = NO;
 	self.scrollView.showsVerticalScrollIndicator = NO;
 	self.scrollView.scrollEnabled = NO;
+	self.scrollView.canCancelContentTouches = NO;
 	[self.view addSubview:self.scrollView];
 	
 	self.containerView = [[UIView alloc] initWithFrame:self.view.bounds];
@@ -225,7 +226,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	// since UIWindow always use portrait orientation in convertRect:inView:, we need to convert the source view's frame to
 	// this controller's view based on the current interface orientation
 	self.fromRect = [self convertRect:fromRect forOrientation:_currentOrientation];
-	NSLog(@"fromRect=%@", NSStringFromCGRect(self.fromRect));
 	
 	self.imageView.transform = CGAffineTransformIdentity;
 	self.imageView.image = image;
@@ -789,6 +789,13 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		scrollView.scrollEnabled = YES;
 	}
 	[self centerScrollViewContents];
+	
+	if (scrollView.zoomScale > 1.0) {
+		self.containerView.frame = CGRectMake(0, 0, scrollView.contentSize.width, scrollView.contentSize.height);
+	}
+	else {
+		self.containerView.frame = self.scrollView.bounds;
+	}
 }
 
 #pragma mark - UIActionSheetDelegate
