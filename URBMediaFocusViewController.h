@@ -14,7 +14,7 @@
 @optional
 
 /**
- *  Tells the delegate that the controller's view is visisble. This is called after all presentation animations have completed.
+ *  Tells the delegate that the controller's view is visible. This is called after all presentation animations have completed.
  *
  *  @param mediaFocusViewController The instance that triggered the event.
  */
