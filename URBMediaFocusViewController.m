@@ -93,6 +93,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		self.shouldDismissOnImageTap = NO;
 		self.shouldShowPhotoActions = NO;
 		self.shouldRotateToDeviceOrientation = YES;
+		self.allowSwipeOnBackgroundView = YES;
 	}
 	return self;
 }
@@ -164,7 +165,13 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		// pan gesture to handle the physics
 		self.panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
 		self.panRecognizer.delegate = self;
-		[self.imageView addGestureRecognizer:self.panRecognizer];
+		
+		if (self.allowSwipeOnBackgroundView) {
+			[self.containerView addGestureRecognizer:self.panRecognizer];
+		}
+		else {
+			[self.imageView addGestureRecognizer:self.panRecognizer];
+		}
 		
 		/* UIDynamics stuff */
 		self.animator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
