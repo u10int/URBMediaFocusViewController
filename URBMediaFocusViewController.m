@@ -243,7 +243,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		[self createViewsForBackground];
 		
 		// hide status bar, but store whether or not we need to unhide it later when dismissing this view
-		// NOTE: in iOS 7+, this only works if you set `UIViewControllerBasedStatusBarAppearance` to YES in your Info.plist
+		// NOTE: in iOS 7+, this only works if you set `UIViewControllerBasedStatusBarAppearance` to NO in your Info.plist
 		_unhideStatusBarOnDismiss = ![UIApplication sharedApplication].statusBarHidden;
 		[[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 		
