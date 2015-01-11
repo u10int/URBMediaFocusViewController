@@ -14,9 +14,6 @@
 		2B07457D1826C6020092FA56 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B07457C1826C6020092FA56 /* main.m */; };
 		2B0745811826C6020092FA56 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745801826C6020092FA56 /* AppDelegate.m */; };
 		2B0745831826C6020092FA56 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B0745821826C6020092FA56 /* Images.xcassets */; };
-		2B07458A1826C6020092FA56 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745891826C6020092FA56 /* XCTest.framework */; };
-		2B07458B1826C6020092FA56 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745701826C6020092FA56 /* Foundation.framework */; };
-		2B07458C1826C6020092FA56 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B0745741826C6020092FA56 /* UIKit.framework */; };
 		2B0745A41826CBAB0092FA56 /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745A31826CBAB0092FA56 /* DemoViewController.m */; };
 		2B0745A71826D0E00092FA56 /* seattle01.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B0745A61826D0E00092FA56 /* seattle01.jpg */; };
 		2B0745AA182729AF0092FA56 /* URBMediaFocusViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745A9182729AF0092FA56 /* URBMediaFocusViewController.m */; };
@@ -24,18 +21,9 @@
 		2B18684D183C852900539B97 /* panorama.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684C183C852900539B97 /* panorama.jpg */; };
 		2B18684F183C869300539B97 /* panorama_vert.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B18684E183C869300539B97 /* panorama_vert.jpg */; };
 		2B407B1018FCE6DC00D1608E /* animated_thumb.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2B407B0F18FCE6DB00D1608E /* animated_thumb.jpg */; };
+		2B7013ED1A3FBA80009A0D6E /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B7013EC1A3FBA80009A0D6E /* CoreImage.framework */; };
 		2B82035018E65C8900610831 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B82034F18E65C8900610831 /* AssetsLibrary.framework */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		2B07458D1826C6020092FA56 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 2B0745651826C6020092FA56 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 2B07456C1826C6020092FA56;
-			remoteInfo = URBMediaFocusViewControllerDemo;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		2B07456D1826C6020092FA56 /* URBMediaFocusViewControllerDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = URBMediaFocusViewControllerDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -49,7 +37,6 @@
 		2B07457F1826C6020092FA56 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		2B0745801826C6020092FA56 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		2B0745821826C6020092FA56 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		2B0745881826C6020092FA56 /* URBMediaFocusViewControllerDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = URBMediaFocusViewControllerDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B0745891826C6020092FA56 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		2B0745A21826CBAB0092FA56 /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		2B0745A31826CBAB0092FA56 /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
@@ -60,6 +47,7 @@
 		2B18684C183C852900539B97 /* panorama.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = panorama.jpg; sourceTree = "<group>"; };
 		2B18684E183C869300539B97 /* panorama_vert.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = panorama_vert.jpg; sourceTree = "<group>"; };
 		2B407B0F18FCE6DB00D1608E /* animated_thumb.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = animated_thumb.jpg; sourceTree = "<group>"; };
+		2B7013EC1A3FBA80009A0D6E /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
 		2B82034F18E65C8900610831 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -68,20 +56,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B7013ED1A3FBA80009A0D6E /* CoreImage.framework in Frameworks */,
 				2B82035018E65C8900610831 /* AssetsLibrary.framework in Frameworks */,
 				2B0745731826C6020092FA56 /* CoreGraphics.framework in Frameworks */,
 				2B0745751826C6020092FA56 /* UIKit.framework in Frameworks */,
 				2B0745711826C6020092FA56 /* Foundation.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2B0745851826C6020092FA56 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				2B07458A1826C6020092FA56 /* XCTest.framework in Frameworks */,
-				2B07458C1826C6020092FA56 /* UIKit.framework in Frameworks */,
-				2B07458B1826C6020092FA56 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,7 +82,6 @@
 			isa = PBXGroup;
 			children = (
 				2B07456D1826C6020092FA56 /* URBMediaFocusViewControllerDemo.app */,
-				2B0745881826C6020092FA56 /* URBMediaFocusViewControllerDemoTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -111,6 +89,7 @@
 		2B07456F1826C6020092FA56 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2B7013EC1A3FBA80009A0D6E /* CoreImage.framework */,
 				2B82034F18E65C8900610831 /* AssetsLibrary.framework */,
 				2B0745701826C6020092FA56 /* Foundation.framework */,
 				2B0745721826C6020092FA56 /* CoreGraphics.framework */,
@@ -177,24 +156,6 @@
 			productReference = 2B07456D1826C6020092FA56 /* URBMediaFocusViewControllerDemo.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2B0745871826C6020092FA56 /* URBMediaFocusViewControllerDemoTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 2B07459C1826C6020092FA56 /* Build configuration list for PBXNativeTarget "URBMediaFocusViewControllerDemoTests" */;
-			buildPhases = (
-				2B0745841826C6020092FA56 /* Sources */,
-				2B0745851826C6020092FA56 /* Frameworks */,
-				2B0745861826C6020092FA56 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				2B07458E1826C6020092FA56 /* PBXTargetDependency */,
-			);
-			name = URBMediaFocusViewControllerDemoTests;
-			productName = URBMediaFocusViewControllerDemoTests;
-			productReference = 2B0745881826C6020092FA56 /* URBMediaFocusViewControllerDemoTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -206,9 +167,6 @@
 				TargetAttributes = {
 					2B07456C1826C6020092FA56 = {
 						DevelopmentTeam = RCNW495Q44;
-					};
-					2B0745871826C6020092FA56 = {
-						TestTargetID = 2B07456C1826C6020092FA56;
 					};
 				};
 			};
@@ -225,7 +183,6 @@
 			projectRoot = "";
 			targets = (
 				2B07456C1826C6020092FA56 /* URBMediaFocusViewControllerDemo */,
-				2B0745871826C6020092FA56 /* URBMediaFocusViewControllerDemoTests */,
 			);
 		};
 /* End PBXProject section */
@@ -245,13 +202,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		2B0745861826C6020092FA56 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -266,22 +216,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		2B0745841826C6020092FA56 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		2B07458E1826C6020092FA56 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 2B07456C1826C6020092FA56 /* URBMediaFocusViewControllerDemo */;
-			targetProxy = 2B07458D1826C6020092FA56 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		2B0745791826C6020092FA56 /* InfoPlist.strings */ = {
@@ -405,48 +340,6 @@
 			};
 			name = Release;
 		};
-		2B07459D1826C6020092FA56 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/URBMediaFocusViewControllerDemo.app/URBMediaFocusViewControllerDemo";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
-				);
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "URBMediaFocusViewControllerDemo/URBMediaFocusViewControllerDemo-Prefix.pch";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUNDLE_LOADER)";
-				WRAPPER_EXTENSION = xctest;
-			};
-			name = Debug;
-		};
-		2B07459E1826C6020092FA56 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/URBMediaFocusViewControllerDemo.app/URBMediaFocusViewControllerDemo";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
-				);
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "URBMediaFocusViewControllerDemo/URBMediaFocusViewControllerDemo-Prefix.pch";
-				INFOPLIST_FILE = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUNDLE_LOADER)";
-				WRAPPER_EXTENSION = xctest;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -464,15 +357,6 @@
 			buildConfigurations = (
 				2B07459A1826C6020092FA56 /* Debug */,
 				2B07459B1826C6020092FA56 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		2B07459C1826C6020092FA56 /* Build configuration list for PBXNativeTarget "URBMediaFocusViewControllerDemoTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				2B07459D1826C6020092FA56 /* Debug */,
-				2B07459E1826C6020092FA56 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

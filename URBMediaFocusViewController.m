@@ -29,6 +29,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 @interface UIView (URBMediaFocusViewController)
 - (UIImage *)urb_snapshotImageWithScale:(CGFloat)scale;
+- (void)urb_snapshowImageWithScale:(CGFloat)scale completion:(void (^)(UIImage *snapshotImage))completionBlock;
 @end
 
 /**
@@ -65,7 +66,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 @property (nonatomic, strong) NSURLConnection *urlConnection;
 @property (nonatomic, strong) NSMutableData *urlData;
 
-@property (nonatomic, strong) UIView *blurredSnapshotView;
+@property (nonatomic, strong) UIImageView *blurredSnapshotView;
 @property (nonatomic, strong) UIView *snapshotView;
 
 @end
@@ -79,6 +80,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	UIInterfaceOrientation _currentOrientation;
 	BOOL _hasLaidOut;
 	BOOL _unhideStatusBarOnDismiss;
+	BOOL _hasGeneratedBlurBackground;
 }
 
 - (id)init {
@@ -86,6 +88,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	if (self) {
 		_hasLaidOut = NO;
 		_unhideStatusBarOnDismiss = YES;
+		_hasGeneratedBlurBackground = NO;
 		
 		self.shouldBlurBackground = YES;
 		self.parallaxEnabled = YES;
@@ -240,7 +243,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	
 	// create snapshot of background if parallax is enabled
 	if (self.parallaxEnabled || self.shouldBlurBackground) {
-		[self createViewsForBackground];
+		[self createViewsForBackground:NULL];
 		
 		// hide status bar, but store whether or not we need to unhide it later when dismissing this view
 		// NOTE: in iOS 7+, this only works if you set `UIViewControllerBasedStatusBarAppearance` to NO in your Info.plist
@@ -370,8 +373,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		}
 	}
 	
-	NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
-	self.urlConnection = connection;
+	[self.loadingView startAnimating];
 	
 	// stores data as it's loaded from the request
 	self.urlData = [[NSMutableData alloc] init];
@@ -385,8 +387,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		self.loadingView.center = CGPointMake(CGRectGetWidth(self.fromView.frame) / 2.0, CGRectGetHeight(self.fromView.frame) / 2.0);
 	}
 	
-	[self.loadingView startAnimating];
-	[self.urlConnection start];
+	NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+	self.urlConnection = connection;
 }
 
 - (void)dismiss:(BOOL)animated {
@@ -472,7 +474,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	return rect;
 }
 
-- (void)createViewsForBackground {
+- (void)createViewsForBackground:(void (^)())completionBlock {
 	// container view for window
 	CGRect containerFrame = CGRectMake(0, 0, CGRectGetWidth(self.keyWindow.frame), CGRectGetHeight(self.keyWindow.frame));
 	
@@ -597,6 +599,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)cleanup {
 	_hasLaidOut = NO;
+	_hasGeneratedBlurBackground = NO;
 	[self.view removeFromSuperview];
 	
 	if (self.targetViewController) {
@@ -958,18 +961,57 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 @implementation UIView (URBMediaFocusViewController)
 
 - (UIImage *)urb_snapshotImageWithScale:(CGFloat)scale {
-	UIGraphicsBeginImageContextWithOptions(self.bounds.size, NO, scale);
-	if ([self respondsToSelector:@selector(drawViewHierarchyInRect:afterScreenUpdates:)]) {
-		[self drawViewHierarchyInRect:self.bounds afterScreenUpdates:YES];
-	}
-	else {
-		[self.layer renderInContext:UIGraphicsGetCurrentContext()];
-	}
+	__strong CALayer *underlyingLayer = self.layer;
+	CGRect bounds = self.bounds;
 	
-	UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+	CGSize size = bounds.size;
+	if (self.contentMode == UIViewContentModeScaleToFill ||
+		self.contentMode == UIViewContentModeScaleAspectFill ||
+		self.contentMode == UIViewContentModeScaleAspectFit ||
+		self.contentMode == UIViewContentModeRedraw)
+	{
+		// prevents edge artefacts
+		size.width = floorf(size.width * scale) / scale;
+		size.height = floorf(size.height * scale) / scale;
+	}
+	else if ([[UIDevice currentDevice].systemVersion floatValue] < 7.0f && [UIScreen mainScreen].scale == 1.0f) {
+		// prevents pixelation on old devices
+		scale = 1.0f;
+	}
+	UIGraphicsBeginImageContextWithOptions(size, NO, scale);
+	CGContextRef context = UIGraphicsGetCurrentContext();
+	CGContextTranslateCTM(context, -bounds.origin.x, -bounds.origin.y);
+	
+	[underlyingLayer renderInContext:context];
+	UIImage *snapshot = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
 	
-	return image;
+	return snapshot;
+}
+
+- (void)urb_snapshowImageWithScale:(CGFloat)scale completion:(void (^)(UIImage *snapshotImage))completionBlock {
+	if ([self respondsToSelector:@selector(drawViewHierarchyInRect:afterScreenUpdates:)]) {
+		[CATransaction setCompletionBlock:^{
+			UIGraphicsBeginImageContextWithOptions(self.bounds.size, NO, scale);
+			[self drawViewHierarchyInRect:self.bounds afterScreenUpdates:NO];
+			UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+			UIGraphicsEndImageContext();
+			
+			if (completionBlock) {
+				completionBlock(image);
+			}
+		}];
+	}
+	else {
+		UIGraphicsBeginImageContextWithOptions(self.bounds.size, NO, scale);
+		[self.layer renderInContext:UIGraphicsGetCurrentContext()];
+		UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+		UIGraphicsEndImageContext();
+		
+		if (completionBlock) {
+			completionBlock(image);
+		}
+	}
 }
 
 @end
