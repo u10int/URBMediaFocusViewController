@@ -696,9 +696,9 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 			}
 			
 			// angle (θ) is the angle between the push vector (V) and vector component parallel to radius, so it should always be positive
-			CGFloat angle = fabsf(fabsf(velocityAngle) - fabsf(locationAngle));
+			CGFloat angle = fabs(fabs(velocityAngle) - fabs(locationAngle));
 			// angular velocity formula: w = (abs(V) * sin(θ)) / abs(r)
-			CGFloat angularVelocity = fabsf((fabsf(pushVelocity) * sinf(angle)) / fabsf(radius));
+			CGFloat angularVelocity = fabs((fabs(pushVelocity) * sinf(angle)) / fabs(radius));
 			
 			// rotation direction is dependent upon which corner was pushed relative to the center of the view
 			// when velocity.y is positive, pushes to the right of center rotate clockwise, left is counterclockwise
@@ -709,8 +709,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 			// amount of angular velocity should be relative to how close to the edge of the view the force originated
 			// angular velocity is reduced the closer to the center the force is applied
 			// for angular velocity: positive = clockwise, negative = counterclockwise
-			CGFloat xRatioFromCenter = fabsf(offsetFromCenter.horizontal) / (CGRectGetWidth(self.imageView.frame) / 2.0f);
-			CGFloat yRatioFromCetner = fabsf(offsetFromCenter.vertical) / (CGRectGetHeight(self.imageView.frame) / 2.0f);
+			CGFloat xRatioFromCenter = fabs(offsetFromCenter.horizontal) / (CGRectGetWidth(self.imageView.frame) / 2.0f);
+			CGFloat yRatioFromCetner = fabs(offsetFromCenter.vertical) / (CGRectGetHeight(self.imageView.frame) / 2.0f);
 
 			// apply device scale to angular velocity
 			angularVelocity *= deviceAngularScale;
@@ -745,6 +745,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 		
 		if (w != CGRectGetWidth(self.imageView.frame)) {
 			CGRect zoomRect = CGRectMake(tapPoint.x - (w / 2.0f), tapPoint.y - (h / 2.0f), w, h);
+			
+			[self enablePanGesture:NO];	// disable pan gesture before we start zooming to prevent some weirdness
 			[self.scrollView zoomToRect:zoomRect animated:YES];
 		}
 	}
@@ -780,6 +782,29 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}
 }
 
+- (void)enablePanGesture:(BOOL)enabled {
+	if (!self.panRecognizer) {
+		return;
+	}
+	
+	if (!enabled) {
+		if (self.allowSwipeOnBackgroundView) {
+			[self.containerView removeGestureRecognizer:self.panRecognizer];
+		}
+		else {
+			[self.imageView removeGestureRecognizer:self.panRecognizer];
+		}
+	}
+	else {
+		if (self.allowSwipeOnBackgroundView) {
+			[self.containerView addGestureRecognizer:self.panRecognizer];
+		}
+		else {
+			[self.imageView addGestureRecognizer:self.panRecognizer];
+		}
+	}
+}
+
 #pragma mark - UIScrollViewDelegate Methods
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView {
@@ -789,20 +814,10 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
 	// zoomScale of 1.0 is always our starting point, so anything other than that we disable the pan gesture recognizer
 	if (scrollView.zoomScale <= 1.0f && !scrollView.zooming) {
-		if (self.panRecognizer) {
-			[self.imageView addGestureRecognizer:self.panRecognizer];
-		}
+		[self enablePanGesture:YES];
 		scrollView.scrollEnabled = NO;
 	}
 	else {
-		if (self.panRecognizer) {
-			if (self.allowSwipeOnBackgroundView) {
-				[self.containerView removeGestureRecognizer:self.panRecognizer];
-			}
-			else {
-				[self.imageView removeGestureRecognizer:self.panRecognizer];
-			}
-		}
 		scrollView.scrollEnabled = YES;
 	}
 	[self centerScrollViewContents];
@@ -1164,8 +1179,8 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
             // ... if d is odd, use three box-blurs of size 'd', centered on the output pixel.
             //
             CGFloat inputRadius = blurRadius * [[UIScreen mainScreen] scale];
-            NSUInteger radius = floor(inputRadius * 3. * sqrt(2 * M_PI) / 4 + 0.5);
-            if (radius % 2 != 1) {
+            float radius = floor(inputRadius * 3. * sqrt(2 * M_PI) / 4 + 0.5);
+            if ((int)radius % 2 != 1) {
                 radius += 1; // force radius to be odd so that the three box-blur methodology works.
             }
             vImageBoxConvolve_ARGB8888(&effectInBuffer, &effectOutBuffer, NULL, 0, 0, radius, radius, 0, kvImageEdgeExtend);
