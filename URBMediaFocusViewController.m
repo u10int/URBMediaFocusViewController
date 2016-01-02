@@ -84,6 +84,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 }
 
 - (void)dealloc {
+	self.delegate = nil;
 	[self.urlConnection cancel];
 }
 
