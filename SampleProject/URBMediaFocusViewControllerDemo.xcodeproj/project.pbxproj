@@ -16,6 +16,7 @@
 		2B0745831826C6020092FA56 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B0745821826C6020092FA56 /* Images.xcassets */; };
 		2B0745A41826CBAB0092FA56 /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745A31826CBAB0092FA56 /* DemoViewController.m */; };
 		2B0745AA182729AF0092FA56 /* URBMediaFocusViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B0745A9182729AF0092FA56 /* URBMediaFocusViewController.m */; };
+		2B0CEBC51C38387700BC9371 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2B0CEBC31C38387700BC9371 /* LaunchScreen.storyboard */; };
 		2B7013ED1A3FBA80009A0D6E /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B7013EC1A3FBA80009A0D6E /* CoreImage.framework */; };
 		2B82035018E65C8900610831 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B82034F18E65C8900610831 /* AssetsLibrary.framework */; };
 		2BB639B31AFFB3B2000271C9 /* animated_thumb.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 2BB639AE1AFFB3B2000271C9 /* animated_thumb.jpg */; };
@@ -42,6 +43,7 @@
 		2B0745A31826CBAB0092FA56 /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
 		2B0745A8182729AF0092FA56 /* URBMediaFocusViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = URBMediaFocusViewController.h; path = ../URBMediaFocusViewController.h; sourceTree = "<group>"; };
 		2B0745A9182729AF0092FA56 /* URBMediaFocusViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = URBMediaFocusViewController.m; path = ../URBMediaFocusViewController.m; sourceTree = "<group>"; };
+		2B0CEBC41C38387700BC9371 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2B7013EC1A3FBA80009A0D6E /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
 		2B82034F18E65C8900610831 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
 		2BB639AE1AFFB3B2000271C9 /* animated_thumb.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = animated_thumb.jpg; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 				2B0745A31826CBAB0092FA56 /* DemoViewController.m */,
 				2BB639AD1AFFB3B2000271C9 /* Resources */,
 				2B0745821826C6020092FA56 /* Images.xcassets */,
+				2B0CEBC31C38387700BC9371 /* LaunchScreen.storyboard */,
 				2B0745771826C6020092FA56 /* Supporting Files */,
 			);
 			path = URBMediaFocusViewControllerDemo;
@@ -176,6 +179,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 2B0745641826C6020092FA56;
 			productRefGroup = 2B07456E1826C6020092FA56 /* Products */;
@@ -193,6 +197,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2BB639B31AFFB3B2000271C9 /* animated_thumb.jpg in Resources */,
+				2B0CEBC51C38387700BC9371 /* LaunchScreen.storyboard in Resources */,
 				2B07457B1826C6020092FA56 /* InfoPlist.strings in Resources */,
 				2BB639B41AFFB3B2000271C9 /* panorama.jpg in Resources */,
 				2BB639B51AFFB3B2000271C9 /* panorama_vert.jpg in Resources */,
@@ -225,6 +230,14 @@
 				2B07457A1826C6020092FA56 /* en */,
 			);
 			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		2B0CEBC31C38387700BC9371 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2B0CEBC41C38387700BC9371 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
