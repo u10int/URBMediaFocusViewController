@@ -4,29 +4,26 @@ URBMediaFocusViewController
 
 ## Overview
 
-`URBMediaFocusViewController` is an experiment to recreate the view used to enlarge photos and videos from their thumbnail previews as seen in [Tweetbot 3](https://itunes.apple.com/app/id722294701) for iOS 7 using the new UIDynamics API available in iOS 7.
+`URBMediaFocusViewController` is an experiment to recreate the view used to enlarge photos and videos from their thumbnail previews as seen in [Tweetbot 3](https://itunes.apple.com/app/id722294701) using the UIDynamics API available starting with iOS 7.
 
 ![Basic example](https://dl.dropboxusercontent.com/u/197980/Screenshots/URBMediaFocusViewController03.gif)
 
+## Requirements
+
+- iOS 8.0+
+
+## Usage
+
+To run the example project, clone the repo, open the `URBMediaFocusViewControllerDemo.xcodeproject` and run the *URBMediaFocusViewControllerDemo* target.
+
 ## Installation
 
-### Installing with CocoaPods
+URBMediaFocusViewController is available through [CocoaPods](http://cocoapods.org). To install
+it, simply add the following line to your Podfile:
 
-[CocoaPods](http://cocoapods.org) is a dependency manager for Objective-C, which automates and simplifies the process of using 3rd-party libraries in your projects.
-
-Add the following to your `Podfile` and run `$ pod install`:
-
-	pod "URBMediaFocusViewController"
-	
-If you don't have CocoaPods installed or integrated into your project, you can learn how to do via [CocoaPods](http://cocoapods.org/).
-
-### Installing Manually
-
-To use `URBMediaFocusViewController` in your own project, just import `URBMediaFocusViewController.h` and `URBMediaFocusViewController.m` files into your project, and then include "`URBMediaFocusViewController.h`" where needed, or in your precompiled header.
-
-The project uses ARC and targets iOS 7.0+.
-
-**NOTE:** This project has been updated to work with and tested against iOS 6 (when compiling using Xcode 5+). However, the UIDynamics features are only support in iOS 7+.
+```ruby
+pod "URBMediaFocusViewController"
+```
 
 ## Usage Examples
 
@@ -77,15 +74,6 @@ If you wish to only dismiss using UIDynamics, you can also dismiss the default t
 You can also provide copy and save actions for the presented photo from an action sheet when the image receives a long press gesture. By default this feature is disabled, so just control this using the `shouldShowPhotoActions` property:
 
 	self.shouldShowPhotoActions = YES;		// default NO
-
-## TODO
-
-- ~~Add CocoaPods spec~~ (added 11/15/2013)
-- Support for handling device orientation changes
-- ~~Support for focusing in image from a web view (issue #6)~~ (added 1/5/2014)
-- ~~Support for animated GIFs~~ (added 4/14/2014)
-- Add support for loading videos similar to the method for remote photos
-- Consider adding support for additional present/dismiss transition animations
 
 ## License
 
