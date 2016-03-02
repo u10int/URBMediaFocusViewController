@@ -39,6 +39,7 @@
 	
 	self.mediaFocusController = [[URBMediaFocusViewController alloc] init];
 	self.mediaFocusController.delegate = self;
+    self.mediaFocusController.shouldShowPhotoActions = YES;
 	//self.mediaFocusController.shouldBlurBackground = NO;	// uncomment if you don't want the background blurred
 	//self.mediaFocusController.parallaxEnabled = NO;	// uncomment if you don't want the parallax (push-back) effect
 	//self.mediaFocusController.shouldDismissOnTap = NO; // uncomment if you wish to disable dismissing the view on a single tap outside image bounds

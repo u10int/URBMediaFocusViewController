@@ -39,7 +39,7 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 - (UIImage *)urb_applyBlurWithRadius:(CGFloat)blurRadius tintColor:(UIColor *)tintColor saturationDeltaFactor:(CGFloat)saturationDeltaFactor maskImage:(UIImage *)maskImage;
 @end
 
-@interface URBMediaFocusViewController () <UIScrollViewDelegate, UIActionSheetDelegate>
+@interface URBMediaFocusViewController () <UIScrollViewDelegate>
 
 @property (nonatomic, strong) UIView *fromView;
 @property (nonatomic, assign) CGRect fromRect;
@@ -777,12 +777,28 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 
 - (void)handleLongPressGesture:(UILongPressGestureRecognizer *)gestureRecognizer {
 	if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
-		UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil
-																 delegate:self
-														cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
-												   destructiveButtonTitle:nil
-														otherButtonTitles:NSLocalizedString(@"Save Photo", nil), NSLocalizedString(@"Copy Photo", nil), nil];
-		[actionSheet showInView:self.view];
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil
+                                                                       message:nil
+                                                                preferredStyle:UIAlertControllerStyleActionSheet];
+        
+        UIAlertAction *savePhotoAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Save Photo", nil) style:UIAlertActionStyleDefault
+                                                                handler:^(UIAlertAction * _Nonnull action) {
+                                                                    [self saveImageToLibrary:self.imageView.image];
+                                                                }];
+        
+        UIAlertAction *copyPhotoAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Copy Photo", nil) style:UIAlertActionStyleDefault
+                                                                handler:^(UIAlertAction * _Nonnull action) {
+                                                                    [self copyImage:self.imageView.image];
+                                                                }];
+        
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil) style:UIAlertActionStyleCancel
+                                                             handler:^(UIAlertAction * action) {}];
+        
+        [alert addAction:savePhotoAction];
+        [alert addAction:copyPhotoAction];
+        [alert addAction:cancelAction];
+        
+        [self presentViewController:alert animated:YES completion:nil];
 	}
 }
 
@@ -834,17 +850,6 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
 	}
 	else {
 		self.containerView.frame = self.scrollView.bounds;
-	}
-}
-
-#pragma mark - UIActionSheetDelegate
-
-- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-	if (buttonIndex == 0) {
-		[self saveImageToLibrary:self.imageView.image];
-	}
-	else if (buttonIndex == 1) {
-		[self copyImage:self.imageView.image];
 	}
 }
 
