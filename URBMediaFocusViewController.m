@@ -558,6 +558,11 @@ static const CGFloat __blurTintColorAlpha = 0.2f;				// defines how much to tint
  *	to the imageView when scaled down. So we just scale the imageView.frame while dynamics are applied.
  */
 - (void)scaleImageForDynamics {
+	
+	if(self.scrollView.zoomScale != 1.0f){
+		return;
+	}
+	
 	_lastZoomScale = self.scrollView.zoomScale;
 	
 	CGRect imageFrame = self.imageView.frame;
