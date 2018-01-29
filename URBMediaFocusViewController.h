@@ -124,6 +124,11 @@
  */
 - (void)cancelURLConnectionIfAny;
 
+/**
+ *  Manually dismiss it
+ */
+- (void)dismiss:(BOOL)animated;
+
 @end
 
 @interface UIImage (URBAnimatedGIF)
